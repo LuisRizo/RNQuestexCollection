@@ -55,7 +55,63 @@ export default class MainScreen extends Component {
 
   componentDidMount() {
     // We can only set the function after the component has been initialized
-    this.props.navigation.setParams({ downloadData: this.downloadData_v2 });
+    this.props.navigation.setParams({ downloadData: this.downloadData });
+    if (this.state.loading) {
+      setTimeout(() => {
+        //If it is still loading...
+        if (this.state.loading) {
+          alert('Taking too long to receive data... Resetting app')
+          this.clearAsyncStorage();
+          this.setState({
+            loading: false,
+            data: []
+          })
+        }
+      }, 5000);
+    }
+  }
+
+  clearAsyncStorage = () => {
+    AsyncStorage.removeItem('data');
+  }
+
+  mixWebsites = async () => {
+    var finalArray = [];
+    var obj = await AsyncStorage.getItem('data');
+    obj = JSON.parse(obj);
+    console.log(obj);
+    for (var v in obj) {
+      if (obj.hasOwnProperty(v)) {
+        finalArray = _.union(finalArray, obj[v]);
+      }
+    }
+    return finalArray;
+  }
+
+  defaultFilter = () => {
+    var array = [];
+    this.setState({loading: true})
+    this.mixWebsites()
+    .then((mix) => {
+      array = mix;
+      //Sort them in order
+      array.sort(function(a, b) {
+          a = new Date(a.date);
+          b = new Date(b.date);
+          return a>b ? -1 : a<b ? 1 : 0;
+      });
+      //Only keep the last 20
+      array.filter(function (item, index) {
+        if (index<20)
+          return true;
+        return false;
+      });
+      console.log(array);
+      this.setState({
+        loading: false,
+        data: array
+      });
+    })
   }
 
   checkStore = async ()  => {
@@ -67,13 +123,13 @@ export default class MainScreen extends Component {
         //So we can refresh the data in case it is too old.
         const value = await this.getData();
         if (value !== null) {
-          this.setState({
-            loading: false,
-            data: value
-          });
+          this.defaultFilter();
         }else {
           //No data was found, fetch for new data
           this.downloadData();
+          console.log("No data was found, fetching new data");
+          console.log(this.state);
+          this.defaultFilter();
         }
       }catch (error){
         Alert.alert('Error',
@@ -83,111 +139,55 @@ export default class MainScreen extends Component {
     }
   }
 
-  unite = (arr1, arr2, key) => {
-    console.log(arr1, arr2);
-    for (var i = 0; i < arr1.length; i++) {
-      arr1[i][key] = arr2[i]
-    }
-    return arr1;
-  }
-
-  downloadData_v2 = () => {
+  downloadData = () => {
+    var obj = {};
+    this.setState({
+      loading:true
+    });
     Websites.forEach((listItem, index) => {
       var url = listItem.url + syndication;
       fetch(url)
       .then((res)=>res.json())
       .then((json)=>{
-        console.log(json);
-        return {
-          [listItem.title]: this.unite(json.items, json.items.map((item, index) => {
-            return fetch(item.url)
-            .then((d) => d.text())
-          }), 'promise')
-        }
-        console.log("End of articles");
-      })
-      .then((obj) => {
-        console.log("Last .then " , obj);
-        obj[Object.keys(obj)[0]].map((item, index) => {
-
+        json.items.map((item, index) => {
+          fetch(item.url)
+          .then((r) => r.text())
+          .then((html) => {
+            var imgUrl = this.extractImageUrl(html);
+            obj[listItem.title] = json.items;
+            obj[listItem.title][index]['image'] = imgUrl;
+            obj[listItem.title][index]['website'] = listItem.title;
+          })
+          .finally(()=>{
+            console.log("Finished getting all the data...");
+            var complete = true;
+            //Preventing multiple saves in the AsyncStorage
+            //To improve overall performance and only set loading to true
+            //When all items have the image property.
+            for (var v in obj) {
+              if (obj.hasOwnProperty(v)) {
+                var len = obj[v].length
+                for (var i = 0; i < len; i++) {
+                  if(!obj[v][i].hasOwnProperty('image')){
+                    complete = false;
+                    break;
+                  }
+                }
+              }
+            }
+            if (complete) {
+              AsyncStorage.setItem('data', JSON.stringify(obj), ()=>{
+                this.setState({
+                  loading:false,
+                  data: obj
+                })
+              })
+            }
+          })
         })
       })
     })
     console.log("End of websites");
-  }
-
-  downloadData = () => {
-    var object = {};
-    this.setState({
-      loading:true
-    });
-    Websites.forEach((listItem, index) => {
-      object[listItem.title] = [];
-      this._fetch(listItem.url + syndication, (json) => {
-        console.log("Fetch completed");
-        object[listItem.title] = json.items;
-
-        //This will append fields like the image and the Website title
-        // object[listItem.title].map((item, index) => {
-        //   object[listItem.title][index]['website'] = listItem.title;
-        //   loading = true;
-        //   this.getImageUrl(item.url).then((imgUrl)=>{
-        //     object[listItem.title][index]['image'] = imgUrl;
-        //     loading = false;
-        //   });
-        // });
-
-        obj = this.getImagesUrls(object, listItem)
-        console.log("TESST", obj);
-        AsyncStorage.mergeItem('data', JSON.stringify(obj), () => {
-          AsyncStorage.getItem('data', (err, data) => {
-            this.setState({
-              loading: false,
-              data: JSON.parse(data)
-            });
-          })
-        });
-      })
-    });
-  }
-
-  getImagesUrls = (object, listItem) => {
-    return object[listItem.title].map((item, index) => {
-      object[listItem.title][index]['website'] = listItem.title;
-      this.getImageUrl(item.url)
-      .then((imgUrl)=>{
-        object[listItem.title][index]['image'] = imgUrl;
-        return object;
-      });
-    });
-  }
-
-  _fetch(url, callback){
-    fetch(url)
-    .then((data)=>data.json())
-    .then((res)=>{
-      //Save the data in AsyncStorage
-      if (res.stat == "ok") {
-        //If everything went well...
-        callback(res);
-        // console.log(Websites[i]);
-        // AsyncStorage.mergeItem('data', JSON.stringify(object));
-      }
-    })
-    .catch((err)=>{
-        Alert.alert('Error',
-          'We apologize for the incovenience, but there was error fetching data - Code: 1');
-        console.log(err);
-        console.log(url);
-      })
-    .done();
-  }
-
-  getImageUrl = async (url) => {
-    const response = await fetch(url)
-    const html = await response.text();
-
-    return this.extractImageUrl(html);
   }
 
   extractImageUrl = (html) => {
@@ -212,13 +212,14 @@ export default class MainScreen extends Component {
   )
 
   render(){
+    console.log(this.state);
     return(
       <View style={styles.MainContainer}>
         {this.state.loading ? (
            <ActivityIndicator style={styles.ActivityIndicator} size={50}/>
         ) : (
           <FlatList
-            data = {this.state.data['Travel Agent Central']}
+            data = {this.state.data}
             keyExtractor={(item, index) => item.url}
             renderItem={this._renderItem}
           />

@@ -18,7 +18,6 @@ export default class MiniArticle extends Component {
 
   render(){
     let {title, author, content, summary, url, image, tags, primaryTaxonomy, date, website} = this.state.article;
-    console.log(image);
     return(
       <TouchableOpacity onPress={this._OpenArticle} style={styles.MainContainer}>
         <View style={styles.TitleRow}>
