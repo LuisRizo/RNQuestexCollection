@@ -12,6 +12,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
+import { FloatingAction } from 'react-native-floating-action';
+
 import _ from 'lodash'
 
 import MiniArticle from '../components/MiniArticle'
@@ -38,13 +40,15 @@ export default class MainScreen extends Component {
     this.state = {
       loading: true,
       data: [],
+      amount: 60,
     }
   }
 
   static navigationOptions = ({navigation}) => {
     let { params = {} } = navigation.state;
     let headerRight = (<Button style={{marginRight:10}} title="Download data"
-      onPress={params.downloadData ? params.downloadData : () => null}/>);
+        onPress={params.downloadData ? params.downloadData : () => null}
+      />);
 
     return { title: "Welcome", headerRight };
   };
@@ -55,7 +59,8 @@ export default class MainScreen extends Component {
 
   componentDidMount() {
     // We can only set the function after the component has been initialized
-    this.props.navigation.setParams({ downloadData: this.downloadData });
+    this.checkStore();
+    this.props.navigation.setParams({ downloadData: this.downloadData, clearAsyncStorage: this.clearAsyncStorage });
     if (this.state.loading) {
       setTimeout(() => {
         //If it is still loading...
@@ -67,19 +72,30 @@ export default class MainScreen extends Component {
             data: []
           })
         }
-      }, 5000);
+      }, 1000);
     }
   }
 
   clearAsyncStorage = () => {
-    AsyncStorage.removeItem('data');
+    AsyncStorage.removeItem('data', (err) => {
+      if (err !== null) {
+        console.log("clearAsyncStorage error", err);
+      }
+    });
+    this.setState({
+      loading: false,
+      data: []
+    });
   }
 
   mixWebsites = async () => {
     var finalArray = [];
-    var obj = await AsyncStorage.getItem('data');
+    var obj = await AsyncStorage.getItem('data', (err) => {
+      if (err !== null) {
+        console.log("mixWebsites error", err);
+      }
+    });
     obj = JSON.parse(obj);
-    console.log(obj);
     for (var v in obj) {
       if (obj.hasOwnProperty(v)) {
         finalArray = _.union(finalArray, obj[v]);
@@ -90,10 +106,9 @@ export default class MainScreen extends Component {
 
   defaultFilter = () => {
     var array = [];
-    this.setState({loading: true})
+    this.setState({loading: true});
     this.mixWebsites()
-    .then((mix) => {
-      array = mix;
+    .then((array) => {
       //Sort them in order
       array.sort(function(a, b) {
           a = new Date(a.date);
@@ -101,12 +116,13 @@ export default class MainScreen extends Component {
           return a>b ? -1 : a<b ? 1 : 0;
       });
       //Only keep the last 20
-      array.filter(function (item, index) {
-        if (index<20)
+      array.filter((item, index) => {
+        if (index<this.state.amount){
+          console.log(item.date);
           return true;
+        }
         return false;
       });
-      console.log(array);
       this.setState({
         loading: false,
         data: array
@@ -127,9 +143,6 @@ export default class MainScreen extends Component {
         }else {
           //No data was found, fetch for new data
           this.downloadData();
-          console.log("No data was found, fetching new data");
-          console.log(this.state);
-          this.defaultFilter();
         }
       }catch (error){
         Alert.alert('Error',
@@ -159,7 +172,7 @@ export default class MainScreen extends Component {
             obj[listItem.title][index]['website'] = listItem.title;
           })
           .finally(()=>{
-            console.log("Finished getting all the data...");
+            console.log("Finished getting Image data");
             var complete = true;
             //Preventing multiple saves in the AsyncStorage
             //To improve overall performance and only set loading to true
@@ -176,12 +189,13 @@ export default class MainScreen extends Component {
               }
             }
             if (complete) {
-              AsyncStorage.setItem('data', JSON.stringify(obj), ()=>{
-                this.setState({
-                  loading:false,
-                  data: obj
-                })
-              })
+              console.log("Completed fetching all the data", obj);
+              AsyncStorage.setItem('data', JSON.stringify(obj), (err) => {
+                if (err !== null) {
+                  console.log("downloadData error", err);
+                }
+              });
+              this.defaultFilter();
             }
           })
         })
@@ -212,7 +226,6 @@ export default class MainScreen extends Component {
   )
 
   render(){
-    console.log(this.state);
     return(
       <View style={styles.MainContainer}>
         {this.state.loading ? (
