@@ -12,6 +12,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
+import Icon from 'react-native-vector-icons/FontAwesome'
+
 import { FloatingAction } from 'react-native-floating-action';
 
 import _ from 'lodash'
@@ -34,6 +36,8 @@ const Websites = [
   },
 ];
 
+const myIcon = (<Icon name="rocket" size={30} color="#900" />);
+
 export default class MainScreen extends Component {
   constructor(props){
     super(props);
@@ -41,8 +45,31 @@ export default class MainScreen extends Component {
       loading: true,
       data: [],
       amount: 60,
+      filter: []
     }
   }
+
+  actions = () => [{
+    text: 'Travel Agent Central',
+    icon: <Text>TAC</Text>,
+    name: 'bt_tac',
+    position: 2
+  }, {
+    text: 'American Spa',
+    icon: <Text>AS</Text>,
+    name: 'bt_as',
+    position: 1
+  }, {
+    text: 'Luxury Travel Advisor',
+    icon: <Text>LTA</Text>,
+    name: 'bt_lta',
+    position: 3
+  }, {
+    text: 'Count',
+    icon: <Text>{this.state.amount}</Text>,
+    name: 'bt_count',
+    position: 4
+  }];
 
   static navigationOptions = ({navigation}) => {
     let { params = {} } = navigation.state;
@@ -106,7 +133,9 @@ export default class MainScreen extends Component {
 
   defaultFilter = () => {
     var array = [];
-    this.setState({loading: true});
+    this.setState({loading: true, filter: []});
+    filter = [];
+    AsyncStorage.setItem('filter', JSON.stringify(filter));
     this.mixWebsites()
     .then((array) => {
       //Sort them in order
@@ -117,10 +146,8 @@ export default class MainScreen extends Component {
       });
       //Only keep the last 20
       array.filter((item, index) => {
-        if (index<this.state.amount){
-          console.log(item.date);
+        if (index<this.state.amount)
           return true;
-        }
         return false;
       });
       this.setState({
@@ -225,6 +252,68 @@ export default class MainScreen extends Component {
     <MiniArticle image={{uri: item.image}} navigation={this.props.navigation} data={item} />
   )
 
+  toggleAmount = () => {
+    if (this.state.amount == 20) {
+      this.setState({amount: 100});
+    }else {
+      //20 articles decrement per click
+      this.setState({amount: this.state.amount - 20});
+    }
+  }
+
+  _filterData = (name) => {
+    let filter = this.state.filter;
+    this.mixWebsites()
+    .then((data)=> {
+      if (filter.includes(name)) {
+        filter.splice(filter.indexOf(name), 1);
+      }else {
+        filter.push(name);
+      }
+      AsyncStorage.setItem('filter', JSON.stringify(filter));
+      this.setState({filter: filter, loading: true});
+      if (data !== null && Array.isArray(data)) {
+        let count = 0;
+        data = data.filter((item, index)=>{
+          //If there's more data than the user wants, return false
+          if (count >= this.state.amount) {
+            return false;
+          }
+          for (var j = 0; j < filter.length; j++) {
+            //If the website is in the filter list, remove it
+            if (item.website === filter[j]) {
+              return false;
+            }
+          }
+          count++;
+          return true;
+        });
+        this.setState({data: data, loading:false});
+      }
+    })
+  }
+
+  _onPressItem = (name) => {
+    //TODO: Make this and _filterData and actions() more generic.
+    console.log(name);
+    switch (name) {
+      case "bt_tac":
+        this._filterData("Travel Agent Central")
+        break;
+      case "bt_lta":
+        this._filterData("Luxury Travel Advisor")
+        break;
+      case "bt_as":
+        this._filterData("American Spa")
+        break;
+      case "bt_count":
+        this.toggleAmount();
+        break;
+      default:
+        console.log("This should never happen");
+    }
+  }
+
   render(){
     return(
       <View style={styles.MainContainer}>
@@ -237,6 +326,11 @@ export default class MainScreen extends Component {
             renderItem={this._renderItem}
           />
         )}
+        <FloatingAction
+          actions={this.actions()}
+          floatingIcon={<Icon name="filter" size={30}/>}
+          onPressItem={this._onPressItem}
+        />
       </View>
     )
   }
