@@ -16,6 +16,10 @@ export default class MiniArticle extends Component {
     }
   }
 
+  getDate(date){
+    return new Date(date.slice(0, date.lastIndexOf('-'))).toDateString();
+  }
+
   render(){
     let {title, author, content, summary, url, image, tags, primaryTaxonomy, date, website} = this.state.article;
     return(
@@ -34,6 +38,7 @@ export default class MiniArticle extends Component {
         </View>
         <View style={styles.ContentSource}>
           <Text style={styles.Source}>{website}</Text>
+          <Text style={styles.Source}>{this.getDate(date)}</Text>
         </View>
       </TouchableOpacity>
     )
@@ -93,6 +98,8 @@ const styles = StyleSheet.create({
     backgroundColor:'black'
   },
   ContentSource:{
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
   Source:{
     color:'grey',

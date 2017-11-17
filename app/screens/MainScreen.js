@@ -115,20 +115,33 @@ export default class MainScreen extends Component {
     });
   }
 
-  mixWebsites = async () => {
+  mixWebsites = async (obj) => {
     var finalArray = [];
-    var obj = await AsyncStorage.getItem('data', (err) => {
-      if (err !== null) {
-        console.log("mixWebsites error", err);
-      }
-    });
-    obj = JSON.parse(obj);
+    if (obj === undefined) {
+      obj = await AsyncStorage.getItem('data', (err) => {
+        if (err !== null) {
+          console.log("mixWebsites error", err);
+        }
+      });
+      obj = JSON.parse(obj);
+    }
     for (var v in obj) {
       if (obj.hasOwnProperty(v)) {
         finalArray = _.union(finalArray, obj[v]);
       }
     }
     return finalArray;
+  }
+
+  sortByDate(array){
+    return array.sort(function(a, b) {
+        //The default constructor of date (Date(a.date)) only works on Debug mode
+        //This caused the real device to display articles in random orders.
+        //https://github.com/facebook/react-native/issues/13195
+        a = new Date(a.date.slice(0, a.date.lastIndexOf('-')));
+        b = new Date(b.date.slice(0, b.date.lastIndexOf('-')));
+        return a>b ? -1 : a<b ? 1 : 0;
+    });
   }
 
   defaultFilter = () => {
@@ -139,11 +152,7 @@ export default class MainScreen extends Component {
     this.mixWebsites()
     .then((array) => {
       //Sort them in order
-      array.sort(function(a, b) {
-          a = new Date(a.date);
-          b = new Date(b.date);
-          return a>b ? -1 : a<b ? 1 : 0;
-      });
+      array = this.sortByDate(array);
       //Only keep the last 20
       array.filter((item, index) => {
         if (index<this.state.amount)
@@ -199,36 +208,38 @@ export default class MainScreen extends Component {
             obj[listItem.title][index]['website'] = listItem.title;
           })
           .finally(()=>{
-            console.log("Finished getting Image data");
             var complete = true;
             //Preventing multiple saves in the AsyncStorage
             //To improve overall performance and only set loading to true
             //When all items have the image property.
-            for (var v in obj) {
+            for (var i = 0; i < Websites.length; i++) {
+              var v = Websites[i].title;
               if (obj.hasOwnProperty(v)) {
                 var len = obj[v].length
-                for (var i = 0; i < len; i++) {
-                  if(!obj[v][i].hasOwnProperty('image')){
+                for (var j = 0; j < len; j++) {
+                  if(!obj[v][j].hasOwnProperty('image')){
                     complete = false;
                     break;
                   }
                 }
+              }else{
+                complete = false;
+                break;
               }
             }
             if (complete) {
-              console.log("Completed fetching all the data", obj);
               AsyncStorage.setItem('data', JSON.stringify(obj), (err) => {
                 if (err !== null) {
                   console.log("downloadData error", err);
                 }
-              });
-              this.defaultFilter();
+              }).then(()=>{
+                this.filterData();
+              })
             }
           })
         })
       })
     })
-    console.log("End of websites");
   }
 
   extractImageUrl = (html) => {
@@ -244,7 +255,6 @@ export default class MainScreen extends Component {
   getData = async () => {
     let data = await AsyncStorage.getItem('data');
     data = JSON.parse(data);
-    console.log(data);
     return data;
   }
 
@@ -261,57 +271,79 @@ export default class MainScreen extends Component {
     }
   }
 
-  _filterData = (name) => {
-    let filter = this.state.filter;
-    this.mixWebsites()
+  filterData = async (filterList) => {
+    this.setState({loading: true});
+    if (filterList == undefined) {
+      filterList = await AsyncStorage.getItem('filter', (err) => {
+        if (err !== null) {
+          console.log("Error fetching filter ", err);
+        }
+      });
+      filterList = JSON.parse(filterList);
+    }
+    this.getData()
     .then((data)=> {
-      if (filter.includes(name)) {
-        filter.splice(filter.indexOf(name), 1);
-      }else {
-        filter.push(name);
+      //If the filter is empty
+      if (filterList && filterList.length !== 0) {
+        for (var i = 0; i < filterList.length; i++) {
+          delete data[filterList[i]]
+        }
       }
-      AsyncStorage.setItem('filter', JSON.stringify(filter));
-      this.setState({filter: filter, loading: true});
-      if (data !== null && Array.isArray(data)) {
-        let count = 0;
-        data = data.filter((item, index)=>{
-          //If there's more data than the user wants, return false
-          if (count >= this.state.amount) {
-            return false;
-          }
-          for (var j = 0; j < filter.length; j++) {
-            //If the website is in the filter list, remove it
-            if (item.website === filter[j]) {
-              return false;
-            }
-          }
-          count++;
-          return true;
-        });
+      this.mixWebsites(data)
+      .then((arr) => {
+        arr = this.sortByDate(arr);
+        data = this.filterAmount(arr);
         this.setState({data: data, loading:false});
-      }
+      });
     })
   }
 
+  filterAmount = (arr, amount) => {
+    var newArr = [];
+    if (amount === undefined) {
+      amount = this.state.amount;
+    }
+    if (Array.isArray(arr)) {
+      let max = (amount<arr.length ? amount : arr.length);
+      for (var i = 0; i < max; i++) {
+        newArr[i] = arr[i];
+      }
+    }
+    return newArr;
+  }
+
+
+  addToFilter = (name) => {
+    let filter = this.state.filter;
+    if (filter.includes(name)) {
+      filter.splice(filter.indexOf(name), 1);
+    }else {
+      filter.push(name);
+    }
+    AsyncStorage.setItem('filter', JSON.stringify(filter));
+    this.setState({filter: filter});
+  }
+
   _onPressItem = (name) => {
-    //TODO: Make this and _filterData and actions() more generic.
-    console.log(name);
+    //TODO: Make this and addToFilter and actions() more generic.
     switch (name) {
       case "bt_tac":
-        this._filterData("Travel Agent Central")
+        this.addToFilter("Travel Agent Central")
         break;
       case "bt_lta":
-        this._filterData("Luxury Travel Advisor")
+        this.addToFilter("Luxury Travel Advisor")
         break;
       case "bt_as":
-        this._filterData("American Spa")
+        this.addToFilter("American Spa")
         break;
       case "bt_count":
         this.toggleAmount();
         break;
       default:
         console.log("This should never happen");
+        return;
     }
+    this.filterData();
   }
 
   render(){
@@ -322,7 +354,7 @@ export default class MainScreen extends Component {
         ) : (
           <FlatList
             data = {this.state.data}
-            keyExtractor={(item, index) => item.url}
+            keyExtractor={(item, index) => item.id}
             renderItem={this._renderItem}
           />
         )}
