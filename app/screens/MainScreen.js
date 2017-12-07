@@ -358,7 +358,7 @@ export default class MainScreen extends Component {
     return(
       <View style={styles.MainContainer}>
         {this.state.loading ? (
-           <ActivityIndicator style={styles.ActivityIndicator} />
+           <ActivityIndicator style={styles.ActivityIndicator} size="large" color="#0000ff"/>
         ) : (
           <FlatList
             data = {this.state.data}
@@ -384,8 +384,9 @@ const styles = StyleSheet.create({
     justifyContent:'flex-start',
   },
   ActivityIndicator:{
-    width: 50,
-    height: 50,
+    alignSelf:'center',
+    width: 100,
+    height: 100,
     margin: 20,
   }
 });
