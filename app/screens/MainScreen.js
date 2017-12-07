@@ -188,6 +188,13 @@ export default class MainScreen extends Component {
     }
   }
 
+  makeUrlHttps = (url) => {
+    if (url.split(":")[0] === "http") {
+      return "https:" + url.split(":")[1];
+    }
+    return url;
+  }
+
   downloadData = () => {
     var obj = {};
     this.setState({
@@ -199,6 +206,7 @@ export default class MainScreen extends Component {
       .then((res)=>res.json())
       .then((json)=>{
         json.items.map((item, index) => {
+          item.url = this.makeUrlHttps(item.url);
           fetch(item.url)
           .then((r) => r.text())
           .then((html) => {
@@ -350,7 +358,7 @@ export default class MainScreen extends Component {
     return(
       <View style={styles.MainContainer}>
         {this.state.loading ? (
-           <ActivityIndicator style={styles.ActivityIndicator} size={50}/>
+           <ActivityIndicator style={styles.ActivityIndicator} />
         ) : (
           <FlatList
             data = {this.state.data}
@@ -376,6 +384,8 @@ const styles = StyleSheet.create({
     justifyContent:'flex-start',
   },
   ActivityIndicator:{
+    width: 50,
+    height: 50,
     margin: 20,
   }
 });
