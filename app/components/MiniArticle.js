@@ -25,7 +25,7 @@ export default class MiniArticle extends Component {
     return(
       <TouchableOpacity onPress={this._OpenArticle} style={styles.MainContainer}>
         <View style={styles.TitleRow}>
-          <Text style={styles.TitleText}>{title}</Text>
+          <HtmlText style={styles.TitleText} html={title}></HtmlText>
         </View>
         <View style={styles.ImageAndText}>
           <View style={styles.ImageContainer}>
