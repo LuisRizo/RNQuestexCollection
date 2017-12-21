@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native'
 import articleJson from '../data/SampleArticle.json'
 
-import HtmlText from 'react-native-html-to-text'
+import HtmlText from '../lib/HtmlText/HtmlText'
 
 export default class MiniArticle extends Component {
   static navigationOptions = {
@@ -30,15 +30,13 @@ export default class MiniArticle extends Component {
         <View style={styles.ImageAndText}>
           <View style={styles.ImageContainer}>
             <Image style={styles.Image} source={this.props.image}/>
-            {/* <View style={styles.Image}></View> */}
           </View>
           <View style={styles.SummaryContainer}>
-            <HtmlText style={styles.SummaryText} html={summary}></HtmlText>
+            <HtmlText numberOfLines={7} style={styles.SummaryText} html={summary}></HtmlText>
           </View>
         </View>
         <View style={styles.ContentSource}>
-          <Text style={styles.Source}>{website}</Text>
-          <Text style={styles.Source}>{this.getDate(date)}</Text>
+          <Text style={styles.Source}>{website}, {this.getDate(date)}</Text>
         </View>
       </TouchableOpacity>
     )
@@ -78,15 +76,12 @@ const styles = StyleSheet.create({
   },
   ImageContainer:{
     flex:1,
-    flexGrow:1,
-    flexShrink:1,
     flexBasis:'auto',
     marginRight:5,
     alignSelf:'stretch',
   },
   SummaryContainer:{
-    flexGrow:1,
-    flex:2,
+    flex:1,
     alignSelf:'stretch',
   },
   SummaryText:{

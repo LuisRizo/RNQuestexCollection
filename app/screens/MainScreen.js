@@ -64,16 +64,17 @@ export default class MainScreen extends Component {
     icon: <Text>LTA</Text>,
     name: 'bt_lta',
     position: 3
-  }, {
-    text: 'Count',
-    icon: <Text>{this.state.amount}</Text>,
-    name: 'bt_count',
-    position: 4
   }];
+  // , {
+  //   text: 'Count',
+  //   icon: <Text>{this.state.amount}</Text>,
+  //   name: 'bt_count',
+  //   position: 4
+  // }
 
   static navigationOptions = ({navigation}) => {
     let { params = {} } = navigation.state;
-    let headerRight = (<Button style={{marginRight:10}} title="Download data"
+    let headerRight = (<Button style={{marginRight:10}} title="Refresh"
         onPress={params.downloadData ? params.downloadData : () => null}
       />);
 
