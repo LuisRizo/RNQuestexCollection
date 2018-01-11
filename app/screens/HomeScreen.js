@@ -36,11 +36,26 @@ const Websites = [
   },
 ];
 
+
+getDefaultFilterObj = () => {
+  filter = {
+    sites: {}
+  }
+  for (site of Websites) {
+    filter.sites[site.title] = true
+  }
+
+  return filter;
+}
+
+var defaultFilterObj = getDefaultFilterObj();
+
 const myIcon = (<Icon name="rocket" size={30} color="#900" />);
 
 export default class HomeScreen extends Component {
   constructor(props){
     super(props);
+    this.timeOutId = null;
     this.state = {
       loading: true,
       data: [],
@@ -103,7 +118,7 @@ export default class HomeScreen extends Component {
   }
 
   componentWillMount(){
-    this.checkStore();
+    // this.checkStore();
   }
 
 
@@ -116,7 +131,7 @@ export default class HomeScreen extends Component {
       scrollToTop: this.scrollToTop,
     });
     if (this.state.loading) {
-      setTimeout(() => {
+      this.timeOutId = setTimeout(() => {
         //If it is still loading...
         if (this.state.loading) {
           alert('Taking too long to receive data... Resetting app')
@@ -125,10 +140,11 @@ export default class HomeScreen extends Component {
             loading: false,
             data: []
           }, () => {
+            console.log("Test");
             this.downloadData()
           })
         }
-      }, 1000);
+      }, 1500);
     }
   }
 
@@ -145,11 +161,7 @@ export default class HomeScreen extends Component {
       if (err !== null) {
         console.log("clearAsyncStorage error", err);
       }
-    });
-    this.setState({
-      loading: false,
-      data: []
-    });
+    })
   }
 
   mixWebsites = async (obj) => {
@@ -183,9 +195,10 @@ export default class HomeScreen extends Component {
 
   defaultFilter = () => {
     var array = [];
-    this.setState({loading: true, filter: []});
-    filter = [];
+    filter = defaultFilterObj;
+    this.setState({loading: true, filter: filter});
     AsyncStorage.setItem('filter', JSON.stringify(filter));
+    console.log(filter);
     this.mixWebsites()
     .then((array) => {
       //Sort them in order
@@ -196,6 +209,7 @@ export default class HomeScreen extends Component {
           return true;
         return false;
       });
+      console.log(array);
       this.setState({
         loading: false,
         data: array
@@ -318,80 +332,24 @@ export default class HomeScreen extends Component {
 
   filterData = async (filterList) => {
     this.setState({loading: true});
-    if (filterList == undefined) {
-      filterList = await AsyncStorage.getItem('filter', (err) => {
-        if (err !== null) {
-          console.log("Error fetching filter ", err);
-        }
-      });
-      filterList = JSON.parse(filterList);
-    }
+    /** Filter logic goes here*/
+    console.log(filterList);
     this.getData()
     .then((data)=> {
-      //Delete the data that is included in the filter
-      if (filterList && filterList.length !== 0) {
-        for (var i = 0; i < filterList.length; i++) {
-          delete data[filterList[i]]
-        }
-      }
+      console.log(data);
       this.mixWebsites(data)
       .then((arr) => {
+        console.log(arr);
         arr = this.sortByDate(arr);
-        data = this.filterAmount(arr);
-        this.setState({data: data, loading:false, refreshing: false});
+        this.setState({data: arr, loading:false, refreshing: false});
       });
     })
   }
 
-  filterAmount = (arr, amount) => {
-    var newArr = [];
-    if (amount === undefined) {
-      amount = this.state.amount;
-    }
-    if (Array.isArray(arr)) {
-      let max = (amount<arr.length ? amount : arr.length);
-      for (var i = 0; i < max; i++) {
-        newArr[i] = arr[i];
-      }
-    }
-    return newArr;
-  }
-
-
-  addToFilter = (name) => {
-    let filter = this.state.filter;
-    if (filter.includes(name)) {
-      filter.splice(filter.indexOf(name), 1);
-    }else {
-      filter.push(name);
-    }
-    AsyncStorage.setItem('filter', JSON.stringify(filter));
-    this.setState({filter: filter});
-  }
-
-  _onPressItem = (name) => {
-    //TODO: Make this and addToFilter and actions() more generic.
-    switch (name) {
-      case "bt_tac":
-        this.addToFilter("Travel Agent Central")
-        break;
-      case "bt_lta":
-        this.addToFilter("Luxury Travel Advisor")
-        break;
-      case "bt_as":
-        this.addToFilter("American Spa")
-        break;
-      case "bt_count":
-        this.toggleAmount();
-        break;
-      default:
-        console.log("This should never happen");
-        return;
-    }
-    this.filterData();
-  }
-
   handleRefresh = () => {
+    if (this.timeOutId) {
+      clearTimeout(this.timeOutId);
+    }
     this.setState({
       refreshing: true,
     }, () => {
