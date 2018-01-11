@@ -11,7 +11,16 @@ export default class ArticleWeb extends Component {
   }
 
   static navigationOptions = ({ navigation }) => ({
-    title: navigation.state.params.title
+    title: navigation.state.params.title,
+    headerMode: 'screen',
+    tabBarOnPress: (scene, jumpToIndex) => {
+      console.log(scene, navigation);
+      if (scene.focused && scene.route.key === "HomeScreen") {
+        navigation.goBack();
+      }else {
+        jumpToIndex(scene.index)
+      }
+    }
   });
 
   render(){

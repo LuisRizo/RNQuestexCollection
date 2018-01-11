@@ -4,12 +4,10 @@ import {
   Text,
   Image,
   Alert,
-  Button,
   FlatList,
   StyleSheet,
   AsyncStorage,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/FontAwesome'
@@ -19,6 +17,8 @@ import { FloatingAction } from 'react-native-floating-action';
 import _ from 'lodash'
 
 import MiniArticle from '../components/MiniArticle'
+
+import { Loader, Container, Button } from '../theme'
 
 const syndication = "/syndication/newscred";
 const Websites = [
@@ -38,14 +38,15 @@ const Websites = [
 
 const myIcon = (<Icon name="rocket" size={30} color="#900" />);
 
-export default class MainScreen extends Component {
+export default class HomeScreen extends Component {
   constructor(props){
     super(props);
     this.state = {
       loading: true,
       data: [],
       amount: 60,
-      filter: []
+      filter: [],
+      refreshing: false,
     }
   }
 
@@ -74,21 +75,46 @@ export default class MainScreen extends Component {
 
   static navigationOptions = ({navigation}) => {
     let { params = {} } = navigation.state;
-    let headerRight = (<Button style={{marginRight:10}} title="Refresh"
+    let headerRight = (<Button marginRight={10} title="Refresh"
         onPress={params.downloadData ? params.downloadData : () => null}
       />);
 
-    return { title: "Welcome", headerRight };
+    let homeOnPress = (scene, jumpToIndex) => {
+      if (scene.route.routeName === "HomeScreen" && scene.focused) {
+        params.scrollToTop();
+      }else {
+        jumpToIndex(scene.route.index)
+      }
+    }
+
+    return {
+      headerRight: <Button
+        text="Filter"
+        containerStyle={{marginRight: 10, backgroundColor:'#3498db'}}
+        onPress={params.openFilter}
+      />,
+      tabBarLabel: "Home",
+      tabBarOnPress: homeOnPress
+    };
   };
+
+  openFilter = () => {
+    navigation.navigate('FilterModal', {filter: this.state.filter});
+  }
 
   componentWillMount(){
     this.checkStore();
   }
 
+
   componentDidMount() {
     // We can only set the function after the component has been initialized
     this.checkStore();
-    this.props.navigation.setParams({ downloadData: this.downloadData, clearAsyncStorage: this.clearAsyncStorage });
+    this.props.navigation.setParams({
+      downloadData: this.downloadData,
+      clearAsyncStorage: this.clearAsyncStorage,
+      scrollToTop: this.scrollToTop,
+    });
     if (this.state.loading) {
       setTimeout(() => {
         //If it is still loading...
@@ -98,10 +124,20 @@ export default class MainScreen extends Component {
           this.setState({
             loading: false,
             data: []
+          }, () => {
+            this.downloadData()
           })
         }
       }, 1000);
     }
+  }
+
+  scrollToTop = () => {
+    this.listRef.scrollToOffset({x: 0, y: 0, animated: true});
+  }
+
+  saveFilter = (filter) => {
+
   }
 
   clearAsyncStorage = () => {
@@ -292,7 +328,7 @@ export default class MainScreen extends Component {
     }
     this.getData()
     .then((data)=> {
-      //If the filter is empty
+      //Delete the data that is included in the filter
       if (filterList && filterList.length !== 0) {
         for (var i = 0; i < filterList.length; i++) {
           delete data[filterList[i]]
@@ -302,7 +338,7 @@ export default class MainScreen extends Component {
       .then((arr) => {
         arr = this.sortByDate(arr);
         data = this.filterAmount(arr);
-        this.setState({data: data, loading:false});
+        this.setState({data: data, loading:false, refreshing: false});
       });
     })
   }
@@ -355,39 +391,30 @@ export default class MainScreen extends Component {
     this.filterData();
   }
 
+  handleRefresh = () => {
+    this.setState({
+      refreshing: true,
+    }, () => {
+      this.downloadData()
+    });
+  }
+
   render(){
     return(
-      <View style={styles.MainContainer}>
-        {this.state.loading ? (
-           <ActivityIndicator style={styles.ActivityIndicator} size="large" color="#0000ff"/>
+      <Container>
+        {this.state.loading && !this.state.refreshing ? (
+           <Loader color="#0000ff" size="large"/>
         ) : (
           <FlatList
             data = {this.state.data}
             keyExtractor={(item, index) => item.id}
             renderItem={this._renderItem}
+            refreshing={this.state.refreshing}
+            onRefresh={this.handleRefresh}
+            ref={ref => this.listRef = ref}
           />
         )}
-        <FloatingAction
-          actions={this.actions()}
-          floatingIcon={<Icon name="filter" size={30}/>}
-          onPressItem={this._onPressItem}
-        />
-      </View>
+      </Container>
     )
   }
 }
-
-const styles = StyleSheet.create({
-  MainContainer: {
-    flex:1,
-    alignItems:'stretch',
-    backgroundColor:'white',
-    justifyContent:'flex-start',
-  },
-  ActivityIndicator:{
-    alignSelf:'center',
-    width: 100,
-    height: 100,
-    margin: 20,
-  }
-});

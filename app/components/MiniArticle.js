@@ -1,3 +1,5 @@
+'use strict';
+
 import React, {Component} from 'react'
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native'
 import articleJson from '../data/SampleArticle.json'
@@ -17,7 +19,11 @@ export default class MiniArticle extends Component {
   }
 
   getDate(date){
-    return new Date(date.slice(0, date.lastIndexOf('-'))).toDateString();
+    var date = new Date(date.slice(0, date.lastIndexOf('-')))
+    date = date.toDateString().split(' ')
+    date[2] += ','
+    date.shift();
+    return date.join(' ');
   }
 
   render(){
@@ -25,18 +31,20 @@ export default class MiniArticle extends Component {
     return(
       <TouchableOpacity onPress={this._OpenArticle} style={styles.MainContainer}>
         <View style={styles.TitleRow}>
-          <HtmlText style={styles.TitleText} html={title}></HtmlText>
+          <HtmlText style={styles.TitleText} html={title}/>
+          <View style={styles.ContentSource}>
+            <Text style={styles.Source}>
+              {website} | {this.getDate(date)}
+            </Text>
+          </View>
         </View>
         <View style={styles.ImageAndText}>
           <View style={styles.ImageContainer}>
             <Image style={styles.Image} source={this.props.image}/>
           </View>
           <View style={styles.SummaryContainer}>
-            <HtmlText numberOfLines={7} style={styles.SummaryText} html={summary}></HtmlText>
+            <HtmlText numberOfLines={8} style={styles.SummaryText} html={summary}/>
           </View>
-        </View>
-        <View style={styles.ContentSource}>
-          <Text style={styles.Source}>{website}, {this.getDate(date)}</Text>
         </View>
       </TouchableOpacity>
     )
