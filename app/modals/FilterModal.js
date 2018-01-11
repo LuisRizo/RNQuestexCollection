@@ -42,17 +42,24 @@ export default class FilterModal extends Component {
     };
   };
 
+  saveFilter = () => {
+    this.props.navigation.goBack();
+  }
+
   componentDidMount(prevProps, prevState) {
-    let {filter} = this.navigation.state.params;
+    this.props.navigation.setParams({
+      saveFilter: this.saveFilter
+    })
+    let {filter} = this.props.navigation.state.params;
     this.setState({
-      
+      filter: filter
     })
   }
 
   render() {
     return (
       <Container>
-        <Text>I'm the FilterModal component {this.props.navigation.state.params.test}</Text>
+        <Text>I'm the FilterModal component</Text>
       </Container>
     );
   }

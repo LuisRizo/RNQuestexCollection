@@ -14,7 +14,6 @@ export default class ArticleWeb extends Component {
     title: navigation.state.params.title,
     headerMode: 'screen',
     tabBarOnPress: (scene, jumpToIndex) => {
-      console.log(scene, navigation);
       if (scene.focused && scene.route.key === "HomeScreen") {
         navigation.goBack();
       }else {

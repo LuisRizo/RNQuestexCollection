@@ -114,7 +114,7 @@ export default class HomeScreen extends Component {
   };
 
   openFilter = () => {
-    navigation.navigate('FilterModal', {filter: this.state.filter});
+    this.props.navigation.navigate('FilterModal', {filter: this.state.filter});
   }
 
   componentWillMount(){
@@ -129,6 +129,7 @@ export default class HomeScreen extends Component {
       downloadData: this.downloadData,
       clearAsyncStorage: this.clearAsyncStorage,
       scrollToTop: this.scrollToTop,
+      openFilter: this.openFilter
     });
     if (this.state.loading) {
       this.timeOutId = setTimeout(() => {
@@ -140,7 +141,6 @@ export default class HomeScreen extends Component {
             loading: false,
             data: []
           }, () => {
-            console.log("Test");
             this.downloadData()
           })
         }
@@ -198,7 +198,6 @@ export default class HomeScreen extends Component {
     filter = defaultFilterObj;
     this.setState({loading: true, filter: filter});
     AsyncStorage.setItem('filter', JSON.stringify(filter));
-    console.log(filter);
     this.mixWebsites()
     .then((array) => {
       //Sort them in order
@@ -209,7 +208,6 @@ export default class HomeScreen extends Component {
           return true;
         return false;
       });
-      console.log(array);
       this.setState({
         loading: false,
         data: array
@@ -333,13 +331,10 @@ export default class HomeScreen extends Component {
   filterData = async (filterList) => {
     this.setState({loading: true});
     /** Filter logic goes here*/
-    console.log(filterList);
     this.getData()
     .then((data)=> {
-      console.log(data);
       this.mixWebsites(data)
       .then((arr) => {
-        console.log(arr);
         arr = this.sortByDate(arr);
         this.setState({data: arr, loading:false, refreshing: false});
       });
