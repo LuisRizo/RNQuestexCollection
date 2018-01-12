@@ -95,7 +95,7 @@ export default class HomeScreen extends Component {
       />);
 
     let homeOnPress = (scene, jumpToIndex) => {
-      if (scene.focused && scene.route.routeName === "HomeScreen") {
+      if (scene.focused && scene.route.key === "HomeScreen") {
         params.scrollToTop();
       }else {
         jumpToIndex(scene.route.index)
