@@ -37,7 +37,11 @@ export default class FilterModal extends Component {
       </Header>,
       tabBarLabel: "Home",
       tabBarOnPress: (scene, jumpToIndex) => {
-        navigation.goBack();
+        if (scene.focused) {
+          navigation.goBack();
+        }else {
+          jumpToIndex(scene.index);
+        }
       }
     };
   };
