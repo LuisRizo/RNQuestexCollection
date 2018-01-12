@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import glamorous, { TouchableOpacity, TextInput } from 'glamorous-native'
 
 import {
-  ActivityIndicator
+  Switch,
+  ActivityIndicator,
 } from 'react-native'
 
 const myLoader = props => <ActivityIndicator {...props} />
@@ -21,6 +22,23 @@ export const Loader = GlamorousLoaderFactory({
   width: 100,
   height: 100,
   margin: 20,
+})
+
+export const BigText = glamorous.text({
+  fontSize:20,
+  color: 'black',
+  marginLeft: 10,
+  marginRight: 10,
+})
+
+export const Selector = glamorous(props => <Switch {...props}/>)({
+  height:80
+});
+
+export const Row = glamorous.view({
+  flexDirection: 'row',
+  justifyContent:'space-between',
+  alignItems:'center'
 })
 
 export const Header = glamorous.view({

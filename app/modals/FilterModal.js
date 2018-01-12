@@ -8,7 +8,9 @@ import {
   StyleSheet,
   TouchableWithoutFeedback
 } from 'react-native';
-import { Container, Button, Header, HeaderText, HeaderRightButton } from '../theme'
+
+import Switch from '../components/SwitchComponent'
+import { Container, Button, Header, HeaderText, HeaderRightButton, BigText } from '../theme'
 
 export default class FilterModal extends Component {
 
@@ -16,9 +18,6 @@ export default class FilterModal extends Component {
     super(props);
 
     this.state = {
-      'LTA': true,
-      'TAC': true,
-      'AS': true,
     };
   }
 
@@ -27,7 +26,7 @@ export default class FilterModal extends Component {
 
     return {
       header: <Header>
-        <TouchableWithoutFeedback onPress={params.saveFilter}>
+        <TouchableWithoutFeedback onPress={params.save}>
           <HeaderRightButton>
             <HeaderText>
               Save
@@ -46,24 +45,46 @@ export default class FilterModal extends Component {
     };
   };
 
-  saveFilter = () => {
+  save = () => {
+    this.props.navigation.state.params.saveFilter(this.state)
     this.props.navigation.goBack();
   }
 
   componentDidMount(prevProps, prevState) {
     this.props.navigation.setParams({
-      saveFilter: this.saveFilter
+      save: this.save
     })
     let {filter} = this.props.navigation.state.params;
     this.setState({
-      filter: filter
+      ...filter
+    })
+  }
+
+  handleChange = (value, site) => {
+    this.setState({
+      sites: {
+        ...this.state.sites,
+        [site]: value
+      }
     })
   }
 
   render() {
+    const siteSwitches = this.state.sites && Object.keys(this.state.sites).map( site => {
+      return <Switch
+        key={site}
+        text={site}
+        onValueChange={(value) => this.handleChange(value, site)}
+        value={this.state.sites[site]}
+      />
+    })
+
     return (
       <Container>
-        <Text>I'm the FilterModal component</Text>
+        <BigText>
+          Sites
+        </BigText>
+        {siteSwitches}
       </Container>
     );
   }

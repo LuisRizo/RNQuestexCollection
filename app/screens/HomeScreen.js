@@ -1,7 +1,5 @@
 import React, { Component } from 'react'
 import {
-  View,
-  Text,
   Image,
   Alert,
   FlatList,
@@ -18,7 +16,9 @@ import _ from 'lodash'
 
 import MiniArticle from '../components/MiniArticle'
 
-import { Loader, Container, Button } from '../theme'
+import { Loader, Container, Button, BigText } from '../theme'
+import glamorous from 'glamorous-native'
+const {View, Text} = glamorous
 
 const syndication = "/syndication/newscred";
 const Websites = [
@@ -60,7 +60,7 @@ export default class HomeScreen extends Component {
       loading: true,
       data: [],
       amount: 60,
-      filter: [],
+      filter: {},
       refreshing: false,
     }
   }
@@ -114,13 +114,8 @@ export default class HomeScreen extends Component {
   };
 
   openFilter = () => {
-    this.props.navigation.navigate('FilterModal', {filter: this.state.filter});
+    this.props.navigation.navigate('FilterModal', {filter: this.state.filter, saveFilter: this.saveFilter});
   }
-
-  componentWillMount(){
-    // this.checkStore();
-  }
-
 
   componentDidMount() {
     // We can only set the function after the component has been initialized
@@ -153,7 +148,13 @@ export default class HomeScreen extends Component {
   }
 
   saveFilter = (filter) => {
-
+    this.setState({
+      filter: {
+        ...this.state.filter,
+        ...filter
+      }
+    });
+    this.filterData(filter);
   }
 
   clearAsyncStorage = () => {
@@ -202,12 +203,12 @@ export default class HomeScreen extends Component {
     .then((array) => {
       //Sort them in order
       array = this.sortByDate(array);
-      //Only keep the last 20
-      array.filter((item, index) => {
-        if (index<this.state.amount)
-          return true;
-        return false;
-      });
+      // //Only keep the last 20
+      // array.filter((item, index) => {
+      //   if (index<this.state.amount)
+      //     return true;
+      //   return false;
+      // });
       this.setState({
         loading: false,
         data: array
@@ -319,26 +320,35 @@ export default class HomeScreen extends Component {
     <MiniArticle image={{uri: item.image}} navigation={this.props.navigation} data={item} />
   )
 
-  toggleAmount = () => {
-    if (this.state.amount == 20) {
-      this.setState({amount: 100});
-    }else {
-      //20 articles decrement per click
-      this.setState({amount: this.state.amount - 20});
-    }
-  }
-
   filterData = async (filterList) => {
     this.setState({loading: true});
     /** Filter logic goes here*/
+    if (!filterList) {
+      filterList = this.state.filter;
+    }
     this.getData()
     .then((data)=> {
+      data = this.filterBySite(data, filterList.sites);
+      console.log(data);
       this.mixWebsites(data)
       .then((arr) => {
         arr = this.sortByDate(arr);
         this.setState({data: arr, loading:false, refreshing: false});
       });
     })
+  }
+
+  filterBySite = (data, filter) => {
+    if (!filter) {
+      filter = this.state.filter.sites;
+    }
+    for (var site in filter) {
+      //If site=false, remove from data
+      if (!filter[site]) {
+        delete data[site];
+      }
+    }
+    return data;
   }
 
   handleRefresh = () => {
@@ -353,11 +363,27 @@ export default class HomeScreen extends Component {
   }
 
   render(){
+    console.log("Home Screen render", this.state.data);
     return(
       <Container>
         {this.state.loading && !this.state.refreshing ? (
            <Loader color="#0000ff" size="large"/>
-        ) : (
+        ) : this.state.data.length === 0 ?
+          (
+            <View
+              flex={1}
+              alignItems={'center'}
+              justifyContent={'center'}
+            >
+              <BigText
+                style={{
+                  textAlign:'center'
+                }}
+                >
+                {`It feels quite lonely around here... Mind changing the filters?`}
+              </BigText>
+            </View>
+          ) : (
           <FlatList
             data = {this.state.data}
             keyExtractor={(item, index) => item.id}
