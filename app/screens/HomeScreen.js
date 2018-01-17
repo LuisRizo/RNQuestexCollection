@@ -159,9 +159,9 @@ export default class HomeScreen extends Component {
             }
           )
         }
-      }, 1500)
+      }, 2500)
     }
-    if (DataService.get() == null) {
+    if (DataService.get().length === 0) {
       console.log('No data found. Downloading new data')
       this.clearData()
       this.setState(
@@ -246,7 +246,8 @@ export default class HomeScreen extends Component {
         //TODO: Store the date that the data was collected
         //So we can refresh the data in case it is too old.
         const value = this.getData()
-        if (value !== null) {
+        console.log(value)
+        if (value !== null && value.length > 0) {
           this.defaultFilter()
         } else {
           //No data was found, fetch for new data
@@ -310,7 +311,6 @@ export default class HomeScreen extends Component {
                   }
                 }
                 if (complete) {
-                  console.log('Data object', obj)
                   DataService.set(obj)
                   this.filterData()
                 }
@@ -351,7 +351,6 @@ export default class HomeScreen extends Component {
     }
     data = this.getData()
     data = this.filterBySite(data, filterList.sites)
-    console.log(data)
     var arr = this.mixWebsites(data)
     arr = this.sortByDate(arr)
     this.setState({ data: arr, loading: false, refreshing: false })
@@ -385,7 +384,6 @@ export default class HomeScreen extends Component {
   }
 
   render() {
-    console.log('Home Screen render', this.state.data)
     return (
       <Container>
         {this.state.loading && !this.state.refreshing ? (

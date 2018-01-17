@@ -27,9 +27,11 @@ export default class Cache {
     return AsyncStorage.getItem('data').then(data => {
       if (data) {
         instance = JSON.parse(data)
+        console.log(instance)
+
         return instance
       } else {
-        let p = null
+        let p = []
         instance = p
         return p
       }
@@ -48,6 +50,7 @@ export default class Cache {
   }
 
   static set(data: any) {
+    console.log('dataService: ', data)
     if (data) {
       instance = data
       return AsyncStorage.setItem('data', JSON.stringify(data))
@@ -55,7 +58,7 @@ export default class Cache {
   }
 
   static clean(): any {
-    instance = null
+    instance = []
     return AsyncStorage.setItem('data', JSON.stringify(instance))
   }
 }
