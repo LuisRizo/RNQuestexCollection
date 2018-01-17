@@ -48,7 +48,6 @@ export default class Cache {
   }
 
   static set(data: any) {
-    console.log('dataService: ', data)
     if (data) {
       instance = data
       return AsyncStorage.setItem('data', JSON.stringify(data))

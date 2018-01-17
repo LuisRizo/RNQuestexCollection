@@ -139,7 +139,7 @@ export default class HomeScreen extends Component {
     this.checkStore()
     this.props.navigation.setParams({
       downloadData: this.downloadData,
-      clearAsyncStorage: this.clearAsyncStorage,
+      clearData: this.clearData,
       scrollToTop: this.scrollToTop,
       openFilter: this.openFilter,
     })
@@ -148,7 +148,7 @@ export default class HomeScreen extends Component {
         //If it is still loading...
         if (this.state.loading) {
           alert('Taking too long to receive data... Resetting app')
-          this.clearAsyncStorage()
+          this.clearData()
           this.setState(
             {
               loading: false,
@@ -160,6 +160,19 @@ export default class HomeScreen extends Component {
           )
         }
       }, 1500)
+    }
+    if (DataService.get() == null) {
+      console.log('No data found. Downloading new data')
+      this.clearData()
+      this.setState(
+        {
+          loading: false,
+          data: [],
+        },
+        () => {
+          this.downloadData()
+        }
+      )
     }
   }
 
@@ -177,23 +190,14 @@ export default class HomeScreen extends Component {
     this.filterData(filter)
   }
 
-  clearAsyncStorage = () => {
-    AsyncStorage.removeItem('data', err => {
-      if (err !== null) {
-        console.log('clearAsyncStorage error', err)
-      }
-    })
+  clearData = () => {
+    DataService.clean()
   }
 
-  mixWebsites = async obj => {
+  mixWebsites = obj => {
     var finalArray = []
     if (obj === undefined) {
-      obj = await AsyncStorage.getItem('data', err => {
-        if (err !== null) {
-          console.log('mixWebsites error', err)
-        }
-      })
-      obj = JSON.parse(obj)
+      obj = DataService.get()
     }
     for (var v in obj) {
       if (obj.hasOwnProperty(v)) {
@@ -219,30 +223,29 @@ export default class HomeScreen extends Component {
     filter = defaultFilterObj
     this.setState({ loading: true, filter: filter })
     AsyncStorage.setItem('filter', JSON.stringify(filter))
-    this.mixWebsites().then(array => {
-      //Sort them in order
-      array = this.sortByDate(array)
-      // //Only keep the last 20
-      // array.filter((item, index) => {
-      //   if (index<this.state.amount)
-      //     return true;
-      //   return false;
-      // });
-      this.setState({
-        loading: false,
-        data: array,
-      })
+    array = this.mixWebsites()
+    //Sort them in order
+    array = this.sortByDate(array)
+    // //Only keep the last 20
+    // array.filter((item, index) => {
+    //   if (index<this.state.amount)
+    //     return true;
+    //   return false;
+    // });
+    this.setState({
+      loading: false,
+      data: array,
     })
   }
 
-  checkStore = async () => {
+  checkStore = () => {
     if (this.state.data.length == 0) {
       try {
         //Try to make sure that there is no data in AsyncStorage
         //Before fetching
         //TODO: Store the date that the data was collected
         //So we can refresh the data in case it is too old.
-        const value = await this.getData()
+        const value = this.getData()
         if (value !== null) {
           this.defaultFilter()
         } else {
@@ -308,13 +311,8 @@ export default class HomeScreen extends Component {
                 }
                 if (complete) {
                   console.log('Data object', obj)
-                  AsyncStorage.setItem('data', JSON.stringify(obj), err => {
-                    if (err !== null) {
-                      console.log('downloadData error', err)
-                    }
-                  }).then(() => {
-                    this.filterData()
-                  })
+                  DataService.set(obj)
+                  this.filterData()
                 }
               })
           })
@@ -332,9 +330,8 @@ export default class HomeScreen extends Component {
     }
   }
 
-  getData = async () => {
-    let data = await AsyncStorage.getItem('data')
-    data = JSON.parse(data)
+  getData = () => {
+    let data = DataService.get()
     return data
   }
 
@@ -352,14 +349,12 @@ export default class HomeScreen extends Component {
     if (!filterList) {
       filterList = this.state.filter
     }
-    this.getData().then(data => {
-      data = this.filterBySite(data, filterList.sites)
-      console.log(data)
-      this.mixWebsites(data).then(arr => {
-        arr = this.sortByDate(arr)
-        this.setState({ data: arr, loading: false, refreshing: false })
-      })
-    })
+    data = this.getData()
+    data = this.filterBySite(data, filterList.sites)
+    console.log(data)
+    var arr = this.mixWebsites(data)
+    arr = this.sortByDate(arr)
+    this.setState({ data: arr, loading: false, refreshing: false })
   }
 
   filterBySite = (data, filter) => {
@@ -403,6 +398,7 @@ export default class HomeScreen extends Component {
               }}>
               {`It feels quite lonely around here... Mind changing the filters?`}
             </BigText>
+            <Button text={'Refresh'} onPress={this.handleRefresh} />
           </View>
         ) : (
           <FlatList
