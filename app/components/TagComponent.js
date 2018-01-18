@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
-import { Dimensions, Text } from 'react-native'
-import glamorous, { View } from 'glamorous-native'
+import { Dimensions } from 'react-native'
+import glamorous, { View, Text } from 'glamorous-native'
 
 const TagContainer = glamorous.touchableOpacity({
   padding: 5,
@@ -23,12 +23,13 @@ const CountContainer = glamorous.view({
   padding: 3,
   width: 25,
   height: 25,
-  backgroundColor: 'grey',
+  backgroundColor: '#418FBE',
   borderRadius: 4,
   marginHorizontal: 5,
   alignItems: 'center',
   justifyContent: 'center',
 })
+
 export default class Tag extends Component {
   constructor(props) {
     super(props)
