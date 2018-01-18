@@ -15,6 +15,7 @@ import { FloatingAction } from 'react-native-floating-action'
 import _ from 'lodash'
 
 import MiniArticle from '../components/MiniArticle'
+import ArticleList from '../components/ArticleList'
 
 import { Loader, Container, Button, BigText } from '../theme'
 import glamorous from 'glamorous-native'
@@ -66,33 +67,6 @@ export default class HomeScreen extends Component {
       refreshing: false,
     }
   }
-
-  actions = () => [
-    {
-      text: 'Travel Agent Central',
-      icon: <Text>TAC</Text>,
-      name: 'bt_tac',
-      position: 2,
-    },
-    {
-      text: 'American Spa',
-      icon: <Text>AS</Text>,
-      name: 'bt_as',
-      position: 1,
-    },
-    {
-      text: 'Luxury Travel Advisor',
-      icon: <Text>LTA</Text>,
-      name: 'bt_lta',
-      position: 3,
-    },
-  ]
-  // , {
-  //   text: 'Count',
-  //   icon: <Text>{this.state.amount}</Text>,
-  //   name: 'bt_count',
-  //   position: 4
-  // }
 
   static navigationOptions = ({ navigation }) => {
     let { params = {} } = navigation.state
@@ -356,30 +330,14 @@ export default class HomeScreen extends Component {
 
   render() {
     return (
-      <Container>
-        {this.state.loading && !this.state.refreshing ? (
-          <Loader color="#0000ff" size="large" />
-        ) : this.state.data.length === 0 ? (
-          <View flex={1} alignItems={'center'} justifyContent={'center'}>
-            <BigText
-              style={{
-                textAlign: 'center',
-              }}>
-              {`It feels quite lonely around here... Mind changing the filters?`}
-            </BigText>
-            <Button text={'Refresh'} onPress={this.handleRefresh} />
-          </View>
-        ) : (
-          <FlatList
-            data={this.state.data}
-            keyExtractor={(item, index) => item.id}
-            renderItem={this._renderItem}
-            refreshing={this.state.refreshing}
-            onRefresh={this.handleRefresh}
-            ref={ref => (this.listRef = ref)}
-          />
-        )}
-      </Container>
+      <ArticleList
+        loading={this.state.loading}
+        refreshing={this.state.refreshing}
+        handleRefresh={this.handleRefresh}
+        data={this.state.data}
+        navigation={this.props.navigation}
+        refCallback={ref => (this.listRef = ref)}
+      />
     )
   }
 }
