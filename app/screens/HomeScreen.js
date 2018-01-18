@@ -1,25 +1,14 @@
 import React, { Component } from 'react'
-import {
-  Image,
-  Alert,
-  FlatList,
-  StyleSheet,
-  AsyncStorage,
-  TouchableOpacity,
-} from 'react-native'
+import { Alert, AsyncStorage } from 'react-native'
 
 import Icon from 'react-native-vector-icons/FontAwesome'
-
-import { FloatingAction } from 'react-native-floating-action'
 
 import _ from 'lodash'
 
 import MiniArticle from '../components/MiniArticle'
 import ArticleList from '../components/ArticleList'
 
-import { Loader, Container, Button, BigText } from '../theme'
-import glamorous from 'glamorous-native'
-const { View, Text } = glamorous
+import { Button } from '../theme'
 
 import DataService from '../lib/dataInstance/'
 import { mixWebsites, makeUrlHttps, sortByDate } from '../lib/functions'
@@ -70,14 +59,6 @@ export default class HomeScreen extends Component {
 
   static navigationOptions = ({ navigation }) => {
     let { params = {} } = navigation.state
-    let headerRight = (
-      <Button
-        marginRight={10}
-        title="Refresh"
-        onPress={params.downloadData ? params.downloadData : () => null}
-      />
-    )
-
     let homeOnPress = (scene, jumpToIndex) => {
       if (scene.focused && scene.route.key === 'HomeScreen') {
         params.scrollToTop()
