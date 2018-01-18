@@ -21,6 +21,7 @@ import glamorous from 'glamorous-native'
 const { View, Text } = glamorous
 
 import DataService from '../lib/dataInstance/'
+import { mixWebsites, makeUrlHttps, sortByDate } from '../lib/functions'
 
 const syndication = '/syndication/newscred'
 const Websites = [
@@ -161,7 +162,7 @@ export default class HomeScreen extends Component {
         }
       }, 2500)
     }
-    if (DataService.get().length === 0) {
+    if (Object.keys(this.getData()).length === 0) {
       console.log('No data found. Downloading new data')
       this.clearData()
       this.setState(
@@ -194,38 +195,14 @@ export default class HomeScreen extends Component {
     DataService.clean()
   }
 
-  mixWebsites = obj => {
-    var finalArray = []
-    if (obj === undefined) {
-      obj = DataService.get()
-    }
-    for (var v in obj) {
-      if (obj.hasOwnProperty(v)) {
-        finalArray = _.union(finalArray, obj[v])
-      }
-    }
-    return finalArray
-  }
-
-  sortByDate(array) {
-    return array.sort(function(a, b) {
-      //The default constructor of date (Date(a.date)) only works on Debug mode
-      //This caused the real device to display articles in random orders.
-      //https://github.com/facebook/react-native/issues/13195
-      a = new Date(a.date.slice(0, a.date.lastIndexOf('-')))
-      b = new Date(b.date.slice(0, b.date.lastIndexOf('-')))
-      return a > b ? -1 : a < b ? 1 : 0
-    })
-  }
-
   defaultFilter = () => {
     var array = []
     filter = defaultFilterObj
     this.setState({ loading: true, filter: filter })
     AsyncStorage.setItem('filter', JSON.stringify(filter))
-    array = this.mixWebsites()
+    array = mixWebsites()
     //Sort them in order
-    array = this.sortByDate(array)
+    array = sortByDate(array)
     // //Only keep the last 20
     // array.filter((item, index) => {
     //   if (index<this.state.amount)
@@ -246,28 +223,20 @@ export default class HomeScreen extends Component {
         //TODO: Store the date that the data was collected
         //So we can refresh the data in case it is too old.
         const value = this.getData()
-        console.log(value)
-        if (value !== null && value.length > 0) {
+        if (value !== null && Object.keys(value).length > 0) {
           this.defaultFilter()
         } else {
           //No data was found, fetch for new data
           this.downloadData()
         }
       } catch (error) {
-        Alert.alert(
-          'Error',
-          'We apologize for the incovenience, but there was an error fetching data - Code: 0'
-        )
-        console.log(error)
+        // Alert.alert(
+        //   'Error',
+        //   'We apologize for the incovenience, but there was an error fetching data - Code: 0'
+        // )
+        console.warn(error)
       }
     }
-  }
-
-  makeUrlHttps = url => {
-    if (url.split(':')[0] === 'http') {
-      return 'https:' + url.split(':')[1]
-    }
-    return url
   }
 
   downloadData = () => {
@@ -281,7 +250,7 @@ export default class HomeScreen extends Component {
         .then(res => res.json())
         .then(json => {
           json.items.map((item, index) => {
-            item.url = this.makeUrlHttps(item.url)
+            item.url = makeUrlHttps(item.url)
             fetch(item.url)
               .then(r => r.text())
               .then(html => {
@@ -331,7 +300,7 @@ export default class HomeScreen extends Component {
   }
 
   getData = () => {
-    let data = DataService.get()
+    let data = _.cloneDeep(DataService.get())
     return data
   }
 
@@ -343,20 +312,22 @@ export default class HomeScreen extends Component {
     />
   )
 
-  filterData = async filterList => {
+  filterData = filterList => {
     this.setState({ loading: true })
     /** Filter logic goes here*/
     if (!filterList) {
       filterList = this.state.filter
     }
     data = this.getData()
+    console.log(data)
     data = this.filterBySite(data, filterList.sites)
-    var arr = this.mixWebsites(data)
-    arr = this.sortByDate(arr)
+    var arr = mixWebsites(data)
+    arr = sortByDate(arr)
     this.setState({ data: arr, loading: false, refreshing: false })
   }
 
   filterBySite = (data, filter) => {
+    console.log(data, filter)
     if (!filter) {
       filter = this.state.filter.sites
     }

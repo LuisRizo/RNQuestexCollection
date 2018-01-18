@@ -1,29 +1,33 @@
 // @flow
 
 import { AsyncStorage } from 'react-native'
+import _ from 'lodash'
 
-let instance = null
+var instance = null
 
 // Structure of instance
-// [
-//   {
-//     author: 'Newsdesk',
-//     content: '<html/>',
-//     date: '',
-//     id: 131,
-//     image: 'https:...',
-//     primaryTaxonomy: 'Running your business',
-//     summary: 'A new luxury sales...',
-//     tags: 'Luxury Travel, Travel Industry Executive',
-//     title: 'Signature launches luxury...',
-//     type: 'article',
-//     url: 'https://',
-//     website: 'Travel Agent Central',
-//   },
-// ]
+// {
+//   'Luxury Travel Advisor': [
+//     {
+//       author: 'Newsdesk',
+//       content: '<html/>',
+//       date: '',
+//       id: 131,
+//       image: 'https:...',
+//       primaryTaxonomy: 'Running your business',
+//       summary: 'A new luxury sales...',
+//       tags: 'Luxury Travel, Travel Industry Executive',
+//       title: 'Signature launches luxury...',
+//       type: 'article',
+//       url: 'https://',
+//       website: 'Travel Agent Central',
+//     }
+//   ],
+// }
 
 export default class Cache {
   static init() {
+    console.log(instance)
     return AsyncStorage.getItem('data').then(data => {
       if (data) {
         instance = JSON.parse(data)
@@ -31,7 +35,7 @@ export default class Cache {
 
         return instance
       } else {
-        let p = []
+        let p = {}
         instance = p
         return p
       }
@@ -58,7 +62,7 @@ export default class Cache {
   }
 
   static clean(): any {
-    instance = []
+    instance = {}
     return AsyncStorage.setItem('data', JSON.stringify(instance))
   }
 }

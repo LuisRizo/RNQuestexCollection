@@ -18,8 +18,6 @@ import { StackNavigator, TabNavigator } from 'react-navigation'
 
 import DataService from './lib/dataInstance/'
 
-DataService.init()
-
 const HomeStack = StackNavigator(
   {
     HomeScreen: {
@@ -64,11 +62,30 @@ const MainTabs = TabNavigator(
   }
 )
 
-export default class app extends Component {
+type State = {
+  data: any,
+}
+
+export default class app extends Component<{}, State> {
+  constructor(props: any) {
+    super(props)
+    this.state = {
+      data: null,
+    }
+  }
+
+  componentDidMount() {
+    DataService.init().then(data => {
+      console.log(data)
+      this.setState({ data })
+    })
+  }
+
   render() {
+    console.log(this.state.data, this.state.data != null)
     return (
       <View style={styles.container}>
-        <MainTabs />
+        {this.state.data != null ? <MainTabs /> : <View />}
       </View>
     )
   }
