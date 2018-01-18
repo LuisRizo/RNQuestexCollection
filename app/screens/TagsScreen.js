@@ -1,9 +1,17 @@
 import React, { Component } from 'react'
-import { View, TouchableOpacity, Text, Image } from 'react-native'
+import { View, TouchableOpacity, Text, Image, FlatList } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import TagComponent from '../components/TagComponent'
 import DataService from '../lib/dataInstance'
 import { mixWebsites } from '../lib/functions'
+import glamorous from 'glamorous-native'
+
+const TagsList = glamorous.view({
+  alignItems: 'flex-start',
+  justifyContent: 'center',
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+})
 
 export default class TagsScreen extends Component {
   constructor(props) {
@@ -33,7 +41,6 @@ export default class TagsScreen extends Component {
       data.map(item => {
         if (item.hasOwnProperty('tags')) {
           item.tags.split(', ').map(tag => {
-            console.log(tags, tag)
             if (tags.hasOwnProperty(tag)) {
               tags[tag].count += 1
             } else {
@@ -43,15 +50,12 @@ export default class TagsScreen extends Component {
         }
       })
       tagsArray = []
-      console.log(tags)
       for (let item in tags) {
         tagsArray.push({ tag: item, count: tags[item].count })
       }
-      console.log(tagsArray)
       tagsArray.sort((a, b) => {
-        return a.count - b.count
+        return b.count - a.count
       })
-      console.log(tagsArray)
       return tagsArray
     }
     return null
@@ -59,9 +63,26 @@ export default class TagsScreen extends Component {
 
   render() {
     return (
-      <View>
-        <Text>This is the tags screen</Text>
-        <TagComponent tag={'Business'} />
+      <View style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
+          <FlatList
+            numColumns={2}
+            data={this.getTags()}
+            keyExtractor={(item, index) => index}
+            contentContainerStyle={{
+              alignItems: 'center',
+            }}
+            renderItem={({ item }) => (
+              <TagComponent tag={item.tag} count={item.count} />
+            )}
+          />
+        </View>
+        {/* <TagsList>
+          <TagComponent tag={'Business'} />
+          {this.getTags().map((tag, index) => {
+            return <TagComponent key={index} tag={tag.tag} />
+          })}
+        </TagsList> */}
       </View>
     )
   }
