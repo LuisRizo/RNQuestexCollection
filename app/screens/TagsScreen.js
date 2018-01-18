@@ -78,7 +78,7 @@ export default class TagsScreen extends Component {
       }
     })
     filteredData = sortByDate(filteredData)
-    return data
+    return filteredData
   }
 
   onPress = tagItem => {

@@ -41,6 +41,7 @@ export default class ArticleList extends Component<Props> {
   render() {
     var { loading, refreshing, data, handleRefresh, refCallback } = this.props
     var params = this.props.navigation.state.params
+    console.log(this.props, params)
     if (params && params.data) {
       loading = params.loading
       refreshing = params.refreshing
