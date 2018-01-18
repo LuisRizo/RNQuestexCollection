@@ -5,6 +5,7 @@ import { View, StyleSheet, Platform } from 'react-native'
 import Article from './components/Article'
 import ArticleWeb from './components/ArticleWeb'
 import MiniArticle from './components/MiniArticle'
+import ArticleList from './components/ArticleList'
 
 import HomeScreen from './screens/HomeScreen'
 import TagsScreen from './screens/TagsScreen'
@@ -42,10 +43,24 @@ const HomeStack = StackNavigator(
   }
 )
 
+const TagsStack = StackNavigator({
+  TagsScreen: { screen: TagsScreen },
+  ArticleList: { screen: ArticleList },
+  ArticleWeb: { screen: ArticleWeb },
+})
+
 const MainTabs = TabNavigator(
   {
     HomeScreen: { screen: HomeStack },
-    TagsScreen: { screen: TagsScreen },
+    TagsStack: {
+      screen: TagsStack,
+      navigationOptions: {
+        tabBarLabel: 'Tags',
+        tabBarIcon: ({ tintColor }) => (
+          <Icon name="tags" style={{ color: tintColor }} size={30} />
+        ),
+      },
+    },
     SettingsScreen: { screen: SettingsScreen },
   },
   {

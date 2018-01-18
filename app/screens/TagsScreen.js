@@ -3,8 +3,9 @@ import { View, TouchableOpacity, Text, Image, FlatList } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import TagComponent from '../components/TagComponent'
 import DataService from '../lib/dataInstance'
-import { mixWebsites } from '../lib/functions'
+import { mixWebsites, sortByDate } from '../lib/functions'
 import glamorous from 'glamorous-native'
+import _ from 'lodash'
 
 const TagsList = glamorous.view({
   alignItems: 'flex-start',
@@ -22,15 +23,20 @@ export default class TagsScreen extends Component {
     let { params = {} } = navigation.state
 
     return {
-      tabBarLabel: 'Tags',
-      tabBarIcon: ({ tintColor }) => (
-        <Icon name="tags" style={{ color: tintColor }} size={30} />
-      ),
+      title: 'Tags',
     }
   }
 
   componentDidMount() {
     this.getTags()
+    this.filterByTag('Products')
+  }
+
+  getArticleTags = article => {
+    if (article.tags) {
+      return article.tags.split(', ')
+    }
+    return null
   }
 
   getTags = () => {
@@ -40,7 +46,7 @@ export default class TagsScreen extends Component {
       data = mixWebsites(data)
       data.map(item => {
         if (item.hasOwnProperty('tags')) {
-          item.tags.split(', ').map(tag => {
+          this.getArticleTags(item).map(tag => {
             if (tags.hasOwnProperty(tag)) {
               tags[tag].count += 1
             } else {
@@ -61,6 +67,29 @@ export default class TagsScreen extends Component {
     return null
   }
 
+  filterByTag = tag => {
+    let filteredData = []
+    let data = _.cloneDeep(DataService.get())
+    data = mixWebsites(data)
+    data.map(item => {
+      tags = this.getArticleTags(item)
+      if (tags.includes(tag)) {
+        filteredData.push(item)
+      }
+    })
+    filteredData = sortByDate(filteredData)
+    return data
+  }
+
+  onPress = tagItem => {
+    this.props.navigation.navigate('ArticleList', {
+      data: this.filterByTag(tagItem.tag),
+      loading: false,
+      refreshing: false,
+      tag: tagItem.tag,
+    })
+  }
+
   render() {
     return (
       <View style={{ flex: 1 }}>
@@ -73,7 +102,11 @@ export default class TagsScreen extends Component {
               alignItems: 'center',
             }}
             renderItem={({ item }) => (
-              <TagComponent tag={item.tag} count={item.count} />
+              <TagComponent
+                tag={item.tag}
+                onPress={() => this.onPress(item)}
+                count={item.count}
+              />
             )}
           />
         </View>

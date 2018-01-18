@@ -4,6 +4,8 @@ import { FlatList } from 'react-native'
 import { View } from 'glamorous-native'
 import MiniArticle from './MiniArticle'
 
+import Icon from 'react-native-vector-icons/FontAwesome'
+
 import { Loader, Container, Button, BigText } from '../theme'
 
 type Props = {
@@ -20,6 +22,14 @@ export default class ArticleList extends Component<Props> {
     super(props)
   }
 
+  static navigationOptions = ({ navigation }) => {
+    let { params = {} } = navigation.state
+
+    return {
+      title: params.tag,
+    }
+  }
+
   _renderItem = ({ item }) => (
     <MiniArticle
       image={{ uri: item.image }}
@@ -29,11 +39,21 @@ export default class ArticleList extends Component<Props> {
   )
 
   render() {
+    var { loading, refreshing, data, handleRefresh, refCallback } = this.props
+    var params = this.props.navigation.state.params
+    if (params && params.data) {
+      loading = params.loading
+      refreshing = params.refreshing
+      handleRefresh = params.handleRefresh
+      data = params.data
+      refCallback = params.refCallback
+    }
+
     return (
       <Container>
-        {this.props.loading && !this.props.refreshing ? (
+        {loading && !refreshing ? (
           <Loader color="#0000ff" size="large" />
-        ) : this.props.data.length === 0 ? (
+        ) : data.length === 0 ? (
           <View flex={1} alignItems={'center'} justifyContent={'center'}>
             <BigText
               style={{
@@ -41,16 +61,16 @@ export default class ArticleList extends Component<Props> {
               }}>
               {`It feels quite lonely around here... Mind changing the filters?`}
             </BigText>
-            <Button text={'Refresh'} onPress={this.props.handleRefresh} />
+            <Button text={'Refresh'} onPress={handleRefresh} />
           </View>
         ) : (
           <FlatList
-            data={this.props.data}
-            keyExtractor={(item, index) => item.id}
+            data={data}
+            keyExtractor={item => item.id}
             renderItem={this._renderItem}
-            refreshing={this.props.refreshing}
-            onRefresh={this.props.handleRefresh}
-            ref={this.props.refCallback}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            ref={refCallback}
           />
         )}
       </Container>
