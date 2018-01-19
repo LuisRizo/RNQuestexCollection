@@ -3,66 +3,90 @@
 import { AsyncStorage } from 'react-native'
 import _ from 'lodash'
 
-var instance = null
+var instance = {
+  data: {},
+  settings: {},
+}
 
 // Structure of instance
 // {
-//   'Luxury Travel Advisor': [
-//     {
-//       author: 'Newsdesk',
-//       content: '<html/>',
-//       date: '',
-//       id: 131,
-//       image: 'https:...',
-//       primaryTaxonomy: 'Running your business',
-//       summary: 'A new luxury sales...',
-//       tags: 'Luxury Travel, Travel Industry Executive',
-//       title: 'Signature launches luxury...',
-//       type: 'article',
-//       url: 'https://',
-//       website: 'Travel Agent Central',
-//     }
-//   ],
+//   data: {
+//     'Luxury Travel Advisor': [
+//       {
+//         author: 'Newsdesk',
+//         content: '<html/>',
+//         date: '',
+//         id: 131,
+//         image: 'https:...',
+//         primaryTaxonomy: 'Running your business',
+//         summary: 'A new luxury sales...',
+//         tags: 'Luxury Travel, Travel Industry Executive',
+//         title: 'Signature launches luxury...',
+//         type: 'article',
+//         url: 'https://',
+//         website: 'Travel Agent Central',
+//       }
+//     ],
+//    ...
+//   },
+//   settings: {
+//      ...
+//   }
 // }
-
 export default class Cache {
-  static init() {
-    console.log(instance)
-    return AsyncStorage.getItem('data').then(data => {
-      if (data) {
-        instance = JSON.parse(data)
-        console.log(instance)
-
-        return instance
-      } else {
-        let p = {}
-        instance = p
-        return p
-      }
+  static init(...args: any) {
+    return args.map(item => {
+      return AsyncStorage.getItem(item).then(response => {
+        if (response) {
+          instance[item] = JSON.parse(response)
+          return instance[item]
+        } else {
+          let p = {}
+          instance[item] = p
+          return p
+        }
+      })
     })
   }
 
-  static get(): any {
-    if (instance) {
-      return instance
+  static get(item: string): any {
+    if (instance[item] && Object.keys(instance[item]).length > 0) {
+      return instance[item]
     } else {
-      AsyncStorage.getItem('data').then(data => {
-        instance = JSON.parse(data)
-        return instance
-      })
+      if (item) {
+        AsyncStorage.getItem(item).then(response => {
+          instance[item] = JSON.parse(response)
+          return instance[item]
+        })
+      }
     }
   }
 
-  static set(data: any) {
-    console.log('dataService: ', data)
+  static set(data: any, item: string) {
+    console.log('dataService: ', data, item)
     if (data) {
-      instance = data
-      return AsyncStorage.setItem('data', JSON.stringify(data))
+      instance[item] = data
+      return AsyncStorage.setItem(item, JSON.stringify(data))
     }
   }
 
-  static clean(): any {
-    instance = {}
-    return AsyncStorage.setItem('data', JSON.stringify(instance))
+  static clean(item: string): any {
+    if (item) {
+      instance[item] = {}
+      return AsyncStorage.setItem(item, JSON.stringify(instance[item]))
+    } else {
+      instance = {
+        data: {},
+        settings: {},
+      }
+      return AsyncStorage.setItem('data', JSON.stringify(instance.data)).then(
+        () => {
+          return AsyncStorage.setItem(
+            'settings',
+            JSON.stringify(instance.settings)
+          )
+        }
+      )
+    }
   }
 }
