@@ -1,16 +1,20 @@
 /* @flow */
 
 import React, { Component } from 'react'
-import { View, Text, StyleSheet, Switch } from 'react-native'
+import { StyleSheet, Switch, Slider } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome'
-import glamorous, { ScrollView } from 'glamorous-native'
+import glamorous, { View, Text, ScrollView } from 'glamorous-native'
 import { Row } from '../theme'
+import DataService from '../lib/dataInstance'
 
 type Props = {
   navigation: any,
 }
 
-type State = {}
+type State = {
+  textSize: number,
+  showThumbnail: boolean,
+}
 
 const SettingsItem = glamorous.view({
   margin: 7,
@@ -21,6 +25,13 @@ const SettingsItem = glamorous.view({
 })
 
 export default class SettingsScreen extends Component<Props, State> {
+  constructor(props) {
+    super(props)
+    this.state = {
+      showThumbnail: true,
+      textSize: 15,
+    }
+  }
   static navigationOptions = ({ navigation }) => {
     let { params = {} } = navigation.state
 
@@ -32,7 +43,28 @@ export default class SettingsScreen extends Component<Props, State> {
     }
   }
 
+  componentDidMount() {
+    const settings = DataService.get('settings')
+    if (settings) {
+      this.setState({ ...settings })
+    }
+  }
+
+  _onSwitchChange = (val: boolean) => {
+    this.setState({ showThumbnail: val })
+    this.saveSettings()
+  }
+
+  _onValueChange = (val: number) => {
+    this.setState({ textSize: val })
+  }
+
+  saveSettings = () => {
+    DataService.set(this.state, 'settings')
+  }
+
   render() {
+    console.log('Settings render')
     return (
       <View style={styles.container}>
         <ScrollView
@@ -41,14 +73,30 @@ export default class SettingsScreen extends Component<Props, State> {
           flex={1}>
           <SettingsItem>
             <Row>
-              <Text>First Settings</Text>
-              <Switch />
+              <Text>Show Thumbnail</Text>
+              <Switch
+                onValueChange={this._onSwitchChange}
+                value={this.state.showThumbnail}
+              />
             </Row>
           </SettingsItem>
           <SettingsItem>
             <Row>
-              <Text>First Settings</Text>
-              <Switch />
+              <Text>Text Size of Article Summary</Text>
+              <View flexDirection={'row'} alignItems={'center'}>
+                <Text>{this.state.textSize}</Text>
+                <Slider
+                  style={{
+                    width: 130,
+                  }}
+                  step={1}
+                  maximumValue={30}
+                  minimumValue={8}
+                  onValueChange={this._onValueChange}
+                  onSlidingComplete={this.saveSettings}
+                  value={this.state.textSize}
+                />
+              </View>
             </Row>
           </SettingsItem>
         </ScrollView>

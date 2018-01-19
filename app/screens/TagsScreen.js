@@ -41,7 +41,6 @@ export default class TagsScreen extends Component {
   getTags = () => {
     tags = {}
     data = DataService.get('data')
-    console.log('Tags', data)
     if (data && Object.keys(data).length !== 0) {
       data = mixWebsites(data)
       data.map(item => {

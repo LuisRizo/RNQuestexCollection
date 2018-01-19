@@ -6,6 +6,7 @@ import _ from 'lodash'
 var instance = {
   data: {},
   settings: {},
+  update: () => {},
 }
 
 // Structure of instance
@@ -62,10 +63,15 @@ export default class Cache {
     }
   }
 
+  static setUpdaterFunction(func: any) {
+    instance.update = () => func(instance)
+  }
+
   static set(data: any, item: string) {
     console.log('dataService: ', data, item)
     if (data) {
       instance[item] = data
+      instance.update()
       return AsyncStorage.setItem(item, JSON.stringify(data))
     }
   }

@@ -92,11 +92,16 @@ export default class app extends Component<{}, State> {
   componentDidMount() {
     Promise.all(DataService.init('data', 'settings')).then(data => {
       this.setState({ data })
+      DataService.setUpdaterFunction(this.updateState)
     })
   }
 
+  updateState = data => {
+    this.setState({ data })
+  }
+
   render() {
-    console.log(this.state.data, this.state.data != null)
+    console.log('app render', this.state.data, this.state.data != null)
     return (
       <View style={styles.container}>
         {this.state.data != null ? <MainTabs /> : <View />}
