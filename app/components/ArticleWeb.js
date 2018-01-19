@@ -13,7 +13,8 @@ export default class ArticleWeb extends Component {
   static navigationOptions = ({ navigation }) => ({
     title: navigation.state.params.title,
     headerMode: 'screen',
-    tabBarOnPress: (scene, jumpToIndex) => {
+    tabBarOnPress: navObj => {
+      const { scene, jumpToIndex } = navObj
       if (scene.focused && scene.route.key === 'HomeScreen') {
         navigation.goBack()
       } else {
@@ -21,32 +22,6 @@ export default class ArticleWeb extends Component {
       }
     },
   })
-
-  // {
-  //   previousScene: {
-  //     index: 0, routes: [{
-  //       routeName: "homescreen",
-  //       key: "initial123123",
-  //       params: {}
-  //     }],
-  //     key: "HomeScreen",
-  //     routeName: "HomeScreen"
-  //   },
-  //   scene: {
-  //     route: {
-  //       index: 0,
-  //       routes: [{
-  //         routeName: "HomeScreen",
-  //         key: "ASDsdsa",
-  //         params: {}
-  //       }],
-  //       key: "HomeScreen",
-  //       routeName: "HomeScreen"
-  //     },
-  //     index: 0,
-  //     focused: true
-  //   }
-  // }
 
   render() {
     return (

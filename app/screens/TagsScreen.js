@@ -28,7 +28,7 @@ export default class TagsScreen extends Component {
   }
 
   componentDidMount() {
-    // this.getTags()
+    this.getTags()
   }
 
   getArticleTags = article => {
@@ -39,10 +39,9 @@ export default class TagsScreen extends Component {
   }
 
   getTags = () => {
-    return []
     tags = {}
     data = DataService.get('data')
-    console.log(data)
+    console.log('Tags', data)
     if (data && Object.keys(data).length !== 0) {
       data = mixWebsites(data)
       data.map(item => {
@@ -65,7 +64,6 @@ export default class TagsScreen extends Component {
       })
       return tagsArray
     }
-    alert(JSON.stringify(data))
     return null
   }
 
@@ -93,11 +91,11 @@ export default class TagsScreen extends Component {
   }
 
   render() {
-    return <View />
+    console.log('TagsScreen re-render', this.getTags())
     return (
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
-          {/* {this.getTags() && (
+          {this.getTags() && (
             <FlatList
               numColumns={2}
               data={this.getTags()}
@@ -113,7 +111,7 @@ export default class TagsScreen extends Component {
                 />
               )}
             />
-          )} */}
+          )}
         </View>
         {/* <TagsList>
           <TagComponent tag={'Business'} />

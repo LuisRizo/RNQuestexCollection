@@ -59,12 +59,8 @@ export default class HomeScreen extends Component {
 
   static navigationOptions = ({ navigation }) => {
     let { params = {} } = navigation.state
-    console.log(navigation)
-    let homeOnPress = (scene, jumpToIndex) => {
-      if (Platform.OS === 'ios') {
-        jumpToIndex = scene.jumpToIndex
-        scene = scene.scene
-      }
+    let homeOnPress = navObj => {
+      const { scene, jumpToIndex } = navObj
       if (scene.focused && scene.route.key === 'HomeScreen') {
         params.scrollToTop()
       } else {

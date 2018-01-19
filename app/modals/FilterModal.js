@@ -38,7 +38,8 @@ export default class FilterModal extends Component {
         </Header>
       ),
       tabBarLabel: 'Home',
-      tabBarOnPress: (scene, jumpToIndex) => {
+      tabBarOnPress: navObj => {
+        const { scene, jumpToIndex } = navObj
         if (scene.focused) {
           navigation.goBack()
         } else {
