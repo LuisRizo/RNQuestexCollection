@@ -29,7 +29,6 @@ export default class TagsScreen extends Component {
 
   componentDidMount() {
     this.getTags()
-    this.filterByTag('Products')
   }
 
   getArticleTags = article => {
@@ -41,8 +40,9 @@ export default class TagsScreen extends Component {
 
   getTags = () => {
     tags = {}
-    data = DataService.get()
-    if (Object.keys(data).length !== 0) {
+    data = DataService.get('data')
+    console.log('Tags', data)
+    if (data && Object.keys(data).length !== 0) {
       data = mixWebsites(data)
       data.map(item => {
         if (item.hasOwnProperty('tags')) {
@@ -69,7 +69,7 @@ export default class TagsScreen extends Component {
 
   filterByTag = tag => {
     let filteredData = []
-    let data = _.cloneDeep(DataService.get())
+    let data = _.cloneDeep(DataService.get('data'))
     data = mixWebsites(data)
     data.map(item => {
       tags = this.getArticleTags(item)
@@ -91,24 +91,27 @@ export default class TagsScreen extends Component {
   }
 
   render() {
+    console.log('TagsScreen re-render', this.getTags())
     return (
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>
-          <FlatList
-            numColumns={2}
-            data={this.getTags()}
-            keyExtractor={(item, index) => index}
-            contentContainerStyle={{
-              alignItems: 'center',
-            }}
-            renderItem={({ item }) => (
-              <TagComponent
-                tag={item.tag}
-                onPress={() => this.onPress(item)}
-                count={item.count}
-              />
-            )}
-          />
+          {this.getTags() && (
+            <FlatList
+              numColumns={2}
+              data={this.getTags()}
+              keyExtractor={(item, index) => index}
+              contentContainerStyle={{
+                alignItems: 'center',
+              }}
+              renderItem={({ item }) => (
+                <TagComponent
+                  tag={item.tag}
+                  onPress={() => this.onPress(item)}
+                  count={item.count}
+                />
+              )}
+            />
+          )}
         </View>
         {/* <TagsList>
           <TagComponent tag={'Business'} />

@@ -59,7 +59,8 @@ export default class HomeScreen extends Component {
 
   static navigationOptions = ({ navigation }) => {
     let { params = {} } = navigation.state
-    let homeOnPress = (scene, jumpToIndex) => {
+    let homeOnPress = navObj => {
+      const { scene, jumpToIndex } = navObj
       if (scene.focused && scene.route.key === 'HomeScreen') {
         params.scrollToTop()
       } else {
@@ -117,7 +118,8 @@ export default class HomeScreen extends Component {
         }
       }, 2500)
     }
-    if (Object.keys(this.getData()).length === 0) {
+    data = this.getData()
+    if (data && Object.keys(data).length === 0) {
       console.log('No data found. Downloading new data')
       this.clearData()
       this.setState(
@@ -147,7 +149,7 @@ export default class HomeScreen extends Component {
   }
 
   clearData = () => {
-    DataService.clean()
+    DataService.clean('data')
   }
 
   defaultFilter = () => {
@@ -158,12 +160,6 @@ export default class HomeScreen extends Component {
     array = mixWebsites()
     //Sort them in order
     array = sortByDate(array)
-    // //Only keep the last 20
-    // array.filter((item, index) => {
-    //   if (index<this.state.amount)
-    //     return true;
-    //   return false;
-    // });
     this.setState({
       loading: false,
       data: array,
@@ -178,10 +174,11 @@ export default class HomeScreen extends Component {
         //TODO: Store the date that the data was collected
         //So we can refresh the data in case it is too old.
         const value = this.getData()
-        if (value !== null && Object.keys(value).length > 0) {
+        if (value != null && Object.keys(value).length > 0) {
           this.defaultFilter()
         } else {
           //No data was found, fetch for new data
+          alert('No data was found ' + value)
           this.downloadData()
         }
       } catch (error) {
@@ -235,7 +232,7 @@ export default class HomeScreen extends Component {
                   }
                 }
                 if (complete) {
-                  DataService.set(obj)
+                  DataService.set(obj, 'data')
                   this.filterData()
                 }
               })
@@ -255,7 +252,7 @@ export default class HomeScreen extends Component {
   }
 
   getData = () => {
-    let data = _.cloneDeep(DataService.get())
+    let data = _.cloneDeep(DataService.get('data'))
     return data
   }
 
@@ -274,7 +271,6 @@ export default class HomeScreen extends Component {
       filterList = this.state.filter
     }
     data = this.getData()
-    console.log(data)
     data = this.filterBySite(data, filterList.sites)
     var arr = mixWebsites(data)
     arr = sortByDate(arr)
@@ -282,7 +278,6 @@ export default class HomeScreen extends Component {
   }
 
   filterBySite = (data, filter) => {
-    console.log(data, filter)
     if (!filter) {
       filter = this.state.filter.sites
     }
@@ -317,7 +312,7 @@ export default class HomeScreen extends Component {
         handleRefresh={this.handleRefresh}
         data={this.state.data}
         navigation={this.props.navigation}
-        refCallback={ref => (this.listRef = ref)}
+        refCallback={el => (this.listRef = el)}
       />
     )
   }

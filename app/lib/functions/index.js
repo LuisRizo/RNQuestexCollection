@@ -9,7 +9,7 @@ import DataService from '../dataInstance'
 export const mixWebsites = (obj: any): array => {
   var finalArray = []
   if (obj === undefined) {
-    obj = DataService.get()
+    obj = DataService.get('data')
   }
   for (var v in obj) {
     if (obj.hasOwnProperty(v)) {

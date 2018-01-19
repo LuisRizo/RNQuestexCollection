@@ -90,8 +90,7 @@ export default class app extends Component<{}, State> {
   }
 
   componentDidMount() {
-    DataService.init().then(data => {
-      console.log(data)
+    Promise.all(DataService.init('data', 'settings')).then(data => {
       this.setState({ data })
     })
   }
