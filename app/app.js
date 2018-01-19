@@ -104,7 +104,11 @@ export default class app extends Component<{}, State> {
     console.log('app render', this.state.data, this.state.data != null)
     return (
       <View style={styles.container}>
-        {this.state.data != null ? <MainTabs /> : <View />}
+        {this.state.data != null ? (
+          <MainTabs screenProps={this.state} />
+        ) : (
+          <View />
+        )}
       </View>
     )
   }

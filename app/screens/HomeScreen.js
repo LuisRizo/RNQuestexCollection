@@ -85,10 +85,11 @@ export default class HomeScreen extends Component {
   }
 
   openFilter = () => {
-    this.props.navigation.navigate('FilterModal', {
-      filter: this.state.filter,
-      saveFilter: this.saveFilter,
-    })
+    DataService.set({ empty: 'object' }, 'test')
+    // this.props.navigation.navigate('FilterModal', {
+    //   filter: this.state.filter,
+    //   saveFilter: this.saveFilter,
+    // })
   }
 
   componentDidMount() {
@@ -178,7 +179,7 @@ export default class HomeScreen extends Component {
           this.defaultFilter()
         } else {
           //No data was found, fetch for new data
-          alert('No data was found ' + value)
+          // alert('No data was found ' + value)
           this.downloadData()
         }
       } catch (error) {
@@ -196,13 +197,32 @@ export default class HomeScreen extends Component {
     this.setState({
       loading: true,
     })
+    previousData = this.getData()
     Websites.forEach((listItem, index) => {
       var url = listItem.url + syndication
       fetch(url)
         .then(res => res.json())
         .then(json => {
+          //TODO: This is the most expensive part of the app. In order to improve it, we can prevent
+          //the fetching of specific articles if were already fetched previously and are stored in
+          //AsyncStorage.
+          //Something like:
+          // (1) - First part of the code for this TODO
+          // if (previousData) {
+          //   currentWebsiteData = previousData[listItem.title]
+          // }
           json.items.map((item, index) => {
             item.url = makeUrlHttps(item.url)
+            // (2) - Second part of the code for the TODO above
+            // if (currentWebsiteData) {
+            //   articleFound = currentWebsiteData.filter(
+            //     singleItem => singleItem.id === item.id
+            //   )
+            //   if (articleFound.length !== 0) {
+            //     obj[listItem.title] = json.items
+            //     obj[listItem.title][index] = articleFound
+            //   }
+            // } else {...
             fetch(item.url)
               .then(r => r.text())
               .then(html => {
@@ -305,6 +325,7 @@ export default class HomeScreen extends Component {
   }
 
   render() {
+    console.log('HomeScreen render', this)
     return (
       <ArticleList
         loading={this.state.loading}

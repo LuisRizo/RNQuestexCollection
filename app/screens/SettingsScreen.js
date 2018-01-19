@@ -52,15 +52,19 @@ export default class SettingsScreen extends Component<Props, State> {
 
   _onSwitchChange = (val: boolean) => {
     this.setState({ showThumbnail: val })
-    this.saveSettings()
+    this.saveSettings({ showThumbnail: val })
   }
 
   _onValueChange = (val: number) => {
     this.setState({ textSize: val })
   }
 
-  saveSettings = () => {
-    DataService.set(this.state, 'settings')
+  saveSettings = obj => {
+    if (obj) {
+      DataService.set({ ...this.state, ...obj }, 'settings')
+    } else {
+      DataService.set(this.state, 'settings')
+    }
   }
 
   render() {
