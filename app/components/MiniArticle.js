@@ -63,18 +63,7 @@ export default class MiniArticle extends Component<Props, State> {
   }
 
   render() {
-    let {
-      title,
-      author,
-      content,
-      summary,
-      url,
-      image,
-      tags,
-      primaryTaxonomy,
-      date,
-      website,
-    } = this.state.article
+    let { summary, date, website, title } = this.state.article
     var settings = this.state.settings
     return (
       <TouchableOpacity
