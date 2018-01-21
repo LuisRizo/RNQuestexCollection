@@ -68,12 +68,19 @@ const MainTabs = TabNavigator(
   {
     tabBarPosition: 'bottom',
     tabBarOptions: {
-      activeTintColor: 'lightgrey',
+      activeTintColor: 'white',
       inactiveTintColor: '#3498db',
       showIcon: true,
       showLabel: false,
       style: {
         backgroundColor: '#2980b9',
+        shadowColor: '#000000',
+        shadowOffset: {
+          width: 0,
+          height: -1,
+        },
+        shadowRadius: 5,
+        shadowOpacity: 0.3,
       },
     },
   }

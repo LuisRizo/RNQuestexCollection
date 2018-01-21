@@ -63,7 +63,7 @@ export default class MiniArticle extends Component<Props, State> {
   }
 
   render() {
-    const {
+    let {
       title,
       author,
       content,
@@ -75,18 +75,16 @@ export default class MiniArticle extends Component<Props, State> {
       date,
       website,
     } = this.state.article
-    const settings = this.state.settings
     return (
       <TouchableOpacity
         onPress={this._OpenArticle}
         style={styles.MainContainer}>
+        <View style={styles.ContentSource}>
+          <Text style={styles.SourceDate}>{this.getDate(date)}</Text>
+          <Text style={styles.SourceSite}>{website}</Text>
+        </View>
         <View style={styles.TitleRow}>
           <HtmlText style={styles.TitleText} html={title} />
-          <View style={styles.ContentSource}>
-            <Text style={styles.Source}>
-              {website} | {this.getDate(date)}
-            </Text>
-          </View>
         </View>
         <View style={styles.ImageAndText}>
           {settings.showThumbnail == null || settings.showThumbnail === true ? (
@@ -121,23 +119,24 @@ export default class MiniArticle extends Component<Props, State> {
 
 const styles = StyleSheet.create({
   MainContainer: {
-    flex: 1,
     margin: 10,
-    padding: 10,
-    minHeight: 220,
+    paddingBottom: 15,
+    minHeight: 180,
     maxHeight: 320,
     alignItems: 'stretch',
-    flexDirection: 'column',
     justifyContent: 'center',
-    backgroundColor: 'lightgrey',
+    borderStyle: 'solid',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e8e8e8',
+    marginBottom: 4,
   },
   TitleRow: {},
   TitleText: {
     fontWeight: 'bold',
     fontSize: 16,
+    marginTop: 6,
   },
   ImageAndText: {
-    flex: 1,
     marginTop: 5,
     flexDirection: 'row',
     alignItems: 'stretch',
@@ -146,7 +145,6 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   ImageContainer: {
-    flex: 1,
     flexBasis: 'auto',
     marginRight: 5,
     alignSelf: 'stretch',
@@ -160,14 +158,23 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   Image: {
-    flex: 1,
-    backgroundColor: 'black',
+    width: 114,
+    height: 86,
+    marginRight: 4,
   },
   ContentSource: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   Source: {
+    color: 'grey',
+    fontSize: 12,
+  },
+  SourceDate: {
+    color: 'grey',
+    fontSize: 12,
+  },
+  SourceSite: {
     color: 'grey',
     fontSize: 12,
   },
