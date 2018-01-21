@@ -6,9 +6,9 @@ import _ from 'lodash'
 var instance = {
   data: {},
   settings: {},
-  update: () => {},
 }
 
+var update = () => {}
 // Structure of instance
 // {
 //   data: {
@@ -37,16 +37,20 @@ var instance = {
 export default class Cache {
   static init(...args: any) {
     return args.map(item => {
-      return AsyncStorage.getItem(item).then(response => {
-        if (response) {
-          instance[item] = JSON.parse(response)
-          return instance[item]
-        } else {
-          let p = {}
-          instance[item] = p
-          return p
-        }
-      })
+      return AsyncStorage.getItem(item)
+        .then(response => {
+          if (response) {
+            instance[item] = JSON.parse(response)
+            return instance[item]
+          } else {
+            let p = {}
+            instance[item] = p
+            return p
+          }
+        })
+        .catch(err => {
+          console.warn(err)
+        })
     })
   }
 
@@ -64,14 +68,14 @@ export default class Cache {
   }
 
   static setUpdaterFunction(func: any) {
-    instance.update = () => func(instance)
+    update = () => func(instance)
   }
 
   static set(data: any, item: string) {
     console.log('dataService: ', data, item)
     if (data) {
       instance[item] = data
-      instance.update()
+      update()
       return AsyncStorage.setItem(item, JSON.stringify(data))
     }
   }
@@ -79,12 +83,14 @@ export default class Cache {
   static clean(item: string): any {
     if (item) {
       instance[item] = {}
+      update()
       return AsyncStorage.setItem(item, JSON.stringify(instance[item]))
     } else {
       instance = {
         data: {},
         settings: {},
       }
+      update()
       return AsyncStorage.setItem('data', JSON.stringify(instance.data)).then(
         () => {
           return AsyncStorage.setItem(

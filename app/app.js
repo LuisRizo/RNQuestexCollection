@@ -19,6 +19,8 @@ import { StackNavigator, TabNavigator } from 'react-navigation'
 
 import DataService from './lib/dataInstance/'
 
+import { Loader } from './theme'
+
 const HomeStack = StackNavigator(
   {
     HomeScreen: {
@@ -79,6 +81,7 @@ const MainTabs = TabNavigator(
 
 type State = {
   data: any,
+  settings: any,
 }
 
 export default class app extends Component<{}, State> {
@@ -86,28 +89,29 @@ export default class app extends Component<{}, State> {
     super(props)
     this.state = {
       data: null,
+      settings: null,
     }
   }
 
   componentDidMount() {
     Promise.all(DataService.init('data', 'settings')).then(data => {
-      this.setState({ data })
+      var [data, settings] = data
+      this.setState({ data, settings })
       DataService.setUpdaterFunction(this.updateState)
     })
   }
 
-  updateState = data => {
-    this.setState({ data })
+  updateState = (data: any) => {
+    this.setState({ data: data.data, settings: data.settings })
   }
 
   render() {
-    console.log('app render', this.state.data, this.state.data != null)
     return (
       <View style={styles.container}>
-        {this.state.data != null ? (
-          <MainTabs screenProps={this.state} />
+        {this.state.data ? (
+          <MainTabs screenProps={{ ...this.state }} />
         ) : (
-          <View />
+          <Loader />
         )}
       </View>
     )

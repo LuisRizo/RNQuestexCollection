@@ -44,6 +44,11 @@ var defaultFilterObj = getDefaultFilterObj()
 
 const myIcon = <Icon name="rocket" size={30} color="#900" />
 
+//TODO: This application does not handle missing internet access at all.
+//It will throw a lot of warnings and possibly errors (hasn't happened to me yet) when
+//Disconnected from the internet
+//Implementing try-catches is a good idea to prevent these warnings and even show an alert or a modal.
+
 export default class HomeScreen extends Component {
   constructor(props) {
     super(props)
@@ -276,14 +281,6 @@ export default class HomeScreen extends Component {
     return data
   }
 
-  _renderItem = ({ item }) => (
-    <MiniArticle
-      image={{ uri: item.image }}
-      navigation={this.props.navigation}
-      data={item}
-    />
-  )
-
   filterData = filterList => {
     this.setState({ loading: true })
     /** Filter logic goes here*/
@@ -325,12 +322,12 @@ export default class HomeScreen extends Component {
   }
 
   render() {
-    console.log('HomeScreen render', this)
     return (
       <ArticleList
         loading={this.state.loading}
         refreshing={this.state.refreshing}
         handleRefresh={this.handleRefresh}
+        settings={this.props.screenProps.settings}
         data={this.state.data}
         navigation={this.props.navigation}
         refCallback={el => (this.listRef = el)}

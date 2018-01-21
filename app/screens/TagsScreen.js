@@ -85,12 +85,12 @@ export default class TagsScreen extends Component {
       data: this.filterByTag(tagItem.tag),
       loading: false,
       refreshing: false,
+      settings: this.props.screenProps && this.props.screenProps.settings,
       tag: tagItem.tag,
     })
   }
 
   render() {
-    console.log('TagsScreen re-render', this.getTags())
     return (
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1 }}>

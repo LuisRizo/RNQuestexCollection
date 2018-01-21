@@ -68,7 +68,6 @@ export default class SettingsScreen extends Component<Props, State> {
   }
 
   render() {
-    console.log('Settings render')
     return (
       <View style={styles.container}>
         <ScrollView
@@ -97,7 +96,7 @@ export default class SettingsScreen extends Component<Props, State> {
                   maximumValue={30}
                   minimumValue={8}
                   onValueChange={this._onValueChange}
-                  onSlidingComplete={this.saveSettings}
+                  onSlidingComplete={() => this.saveSettings()}
                   value={this.state.textSize}
                 />
               </View>

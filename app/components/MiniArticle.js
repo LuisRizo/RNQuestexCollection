@@ -1,11 +1,24 @@
 'use strict'
-
+// @flow
 import React, { Component } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native'
 import DataService from '../lib/dataInstance'
 import HtmlText from '../lib/HtmlText/HtmlText'
+import _ from 'lodash'
 
-export default class MiniArticle extends Component {
+type Props = {
+  settings: any,
+  navigation: any,
+  data: any,
+  image: any,
+}
+
+type State = {
+  settings: any,
+  article: any,
+}
+
+export default class MiniArticle extends Component<Props, State> {
   static navigationOptions = {
     title: 'Welcome',
   }
@@ -22,16 +35,31 @@ export default class MiniArticle extends Component {
   }
 
   componentDidMount() {
-    let settings = DataService.get('settings')
+    let settings = this.props.settings
     this.setState({ settings: { ...this.state.settings, ...settings } })
   }
 
-  getDate(date) {
+  componentDidUpdate(prevProps, prevState) {
+    let settings = this.props.settings
+    if (_.isEqual(prevProps.settings, settings)) {
+      return
+    }
+    this.setState({ settings: { ...this.state.settings, ...settings } })
+  }
+
+  getDate(date: any) {
     var date = new Date(date.slice(0, date.lastIndexOf('-')))
     date = date.toDateString().split(' ')
     date[2] += ','
     date.shift()
     return date.join(' ')
+  }
+
+  shouldComponentUpdate(nextProps: any, nextState: any) {
+    // if (_.isEqual(nextProps, this.props) && _.isEqual(nextState, this.state)) {
+    //   return false
+    // }
+    return true
   }
 
   render() {
@@ -48,6 +76,7 @@ export default class MiniArticle extends Component {
       website,
     } = this.state.article
     const settings = this.state.settings
+    console.log('MiniArticle', settings)
     return (
       <TouchableOpacity
         onPress={this._OpenArticle}

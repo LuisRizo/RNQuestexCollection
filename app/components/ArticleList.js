@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 import { FlatList } from 'react-native'
 import { View } from 'glamorous-native'
 import MiniArticle from './MiniArticle'
+import _ from 'lodash'
 
 import Icon from 'react-native-vector-icons/FontAwesome'
 
@@ -12,6 +13,7 @@ type Props = {
   loading: boolean,
   refreshing: boolean,
   handleRefresh: any,
+  settings: any,
   data: any,
   navigation: any,
   refCallback: any,
@@ -32,16 +34,23 @@ export default class ArticleList extends Component<Props> {
 
   _renderItem = ({ item }) => (
     <MiniArticle
+      settings={this.props.settings}
       image={{ uri: item.image }}
       navigation={this.props.navigation}
       data={item}
     />
   )
 
+  shouldComponentUpdate(nextProps: any, nextState: any) {
+    // if (_.isEqual(nextProps, this.props) && _.isEqual(nextState, this.state)) {
+    //   return false
+    // }
+    return true
+  }
+
   render() {
     var { loading, refreshing, data, handleRefresh, refCallback } = this.props
     var params = this.props.navigation.state.params
-    console.log(this.props, params)
     if (params && params.data) {
       loading = params.loading
       refreshing = params.refreshing
@@ -49,7 +58,7 @@ export default class ArticleList extends Component<Props> {
       data = params.data
       refCallback = params.refCallback
     }
-
+    console.log('Article list re-render', this.props.settings)
     return (
       <Container>
         {loading && !refreshing ? (
@@ -67,6 +76,7 @@ export default class ArticleList extends Component<Props> {
         ) : (
           <FlatList
             data={data}
+            extraData={this.props.settings}
             keyExtractor={item => item.id}
             renderItem={this._renderItem}
             refreshing={refreshing}
