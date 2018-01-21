@@ -4,6 +4,7 @@ import { FlatList } from 'react-native'
 import { View } from 'glamorous-native'
 import MiniArticle from './MiniArticle'
 import _ from 'lodash'
+import DataService from '../lib/dataInstance'
 
 import Icon from 'react-native-vector-icons/FontAwesome'
 
@@ -19,9 +20,16 @@ type Props = {
   refCallback: any,
 }
 
-export default class ArticleList extends Component<Props> {
+type State = {
+  settings: any,
+}
+
+export default class ArticleList extends Component<Props, State> {
   constructor(props: any) {
     super(props)
+    this.state = {
+      settings: null,
+    }
   }
 
   static navigationOptions = ({ navigation }) => {
@@ -32,14 +40,28 @@ export default class ArticleList extends Component<Props> {
     }
   }
 
+  componentDidMount() {
+    this.setState({
+      settings: DataService.get('settings'),
+    })
+  }
+
   _renderItem = ({ item }) => (
     <MiniArticle
-      settings={this.props.settings}
+      settings={this.state.settings}
       image={{ uri: item.image }}
       navigation={this.props.navigation}
       data={item}
     />
   )
+
+  componentDidUpdate(prevProps, prevState) {
+    let settings = DataService.get('settings')
+    if (_.isEqual(prevState.settings, settings)) {
+      return
+    }
+    this.setState({ settings })
+  }
 
   shouldComponentUpdate(nextProps: any, nextState: any) {
     // if (_.isEqual(nextProps, this.props) && _.isEqual(nextState, this.state)) {
@@ -58,7 +80,6 @@ export default class ArticleList extends Component<Props> {
       data = params.data
       refCallback = params.refCallback
     }
-    console.log('Article list re-render', this.props.settings)
     return (
       <Container>
         {loading && !refreshing ? (
@@ -76,7 +97,7 @@ export default class ArticleList extends Component<Props> {
         ) : (
           <FlatList
             data={data}
-            extraData={this.props.settings}
+            extraData={this.state.settings}
             keyExtractor={item => item.id}
             renderItem={this._renderItem}
             refreshing={refreshing}

@@ -76,7 +76,6 @@ export default class MiniArticle extends Component<Props, State> {
       website,
     } = this.state.article
     const settings = this.state.settings
-    console.log('MiniArticle', settings)
     return (
       <TouchableOpacity
         onPress={this._OpenArticle}

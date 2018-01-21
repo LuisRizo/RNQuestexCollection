@@ -327,7 +327,6 @@ export default class HomeScreen extends Component {
         loading={this.state.loading}
         refreshing={this.state.refreshing}
         handleRefresh={this.handleRefresh}
-        settings={this.props.screenProps.settings}
         data={this.state.data}
         navigation={this.props.navigation}
         refCallback={el => (this.listRef = el)}

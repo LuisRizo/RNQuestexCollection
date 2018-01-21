@@ -18,7 +18,6 @@ export default class SwitchComponent extends Component {
   }
 
   handleChange = (value) => {
-    console.log(this.state);
     this.setState({
       value: value
     })
